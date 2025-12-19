@@ -66,6 +66,18 @@
     background: transparent;
     border: none;
     cursor: pointer;
+    gap: 6px;
+    /* Ensure space between icon and text */
+}
+
+.btnText {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .btnText {
+        display: inline;
+    }
 }
 
 .toolButton:hover:not(:disabled) {
