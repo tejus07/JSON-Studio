@@ -18,6 +18,45 @@
     color: var(--text-muted);
 }
 
+.emptyContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-4);
+    text-align: center;
+    opacity: 0.6;
+}
+
+.emptyIcon {
+    color: var(--color-primary);
+    opacity: 0.8;
+}
+
+.emptyContent h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.instructions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-2);
+}
+
+.instruction {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    background-color: var(--bg-app);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
 .node {
     /* Container for a block */
 }

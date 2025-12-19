@@ -249,16 +249,18 @@ export function Layout() {
 
             <footer className={`${styles.footer} ${isValid ? styles.valid : styles.invalid} `}>
                 <div className={styles.status}>
-                    {isValid ? (
-                        <>
-                            <Check size={14} />
-                            <span>Valid JSON</span>
-                        </>
-                    ) : (
-                        <>
-                            <AlertTriangle size={14} />
-                            <span>{error}</span>
-                        </>
+                    {rawText.trim().length > 0 && (
+                        isValid ? (
+                            <>
+                                <Check size={14} />
+                                <span>Valid JSON</span>
+                            </>
+                        ) : (
+                            <>
+                                <AlertTriangle size={14} />
+                                <span>{error}</span>
+                            </>
+                        )
                     )}
                 </div>
                 <div className={styles.meta}>

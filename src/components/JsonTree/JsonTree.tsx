@@ -1,3 +1,4 @@
+import { FileJson, Upload, Keyboard } from 'lucide-react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { JsonNode } from './JsonNode';
 import styles from './JsonTree.module.css';
@@ -8,7 +9,20 @@ export function JsonTree() {
     if (!rawText || !rawText.trim()) {
         return (
             <div className={styles.empty}>
-                <p>Start typing or paste JSON to visualize</p>
+                <div className={styles.emptyContent}>
+                    <FileJson size={48} className={styles.emptyIcon} />
+                    <h3>Ready to Visualize</h3>
+                    <div className={styles.instructions}>
+                        <div className={styles.instruction}>
+                            <Keyboard size={16} />
+                            <span>Type or Paste JSON</span>
+                        </div>
+                        <div className={styles.instruction}>
+                            <Upload size={16} />
+                            <span>Drag & Drop File</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
