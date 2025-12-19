@@ -1,0 +1,40 @@
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 56px;
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border-subtle);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navItem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    height: 100%;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.active {
+    color: var(--color-primary);
+}
+
+.active svg {
+    stroke-width: 2.5px;
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border-subtle);
+}

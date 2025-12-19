@@ -1,11 +1,14 @@
 import { useJsonStore } from '../../store/useJsonStore';
 import { Editor } from '../Editor/Editor';
 import { SettingsModal } from '../SettingsModal/SettingsModal';
-import { useRef, useState } from 'react';
-import { FileJson, Check, AlertTriangle, Minimize, AlignLeft, Moon, Sun, Settings, Wand2, Columns, Code, FolderTree, FileCode, MessageSquare, Download, Upload, Copy, Trash2, HelpCircle } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { Upload, Check, AlertTriangle } from 'lucide-react';
 import { JsonTree } from '../JsonTree/JsonTree';
 import { ContentModal } from '../ContentModal/ContentModal';
 import { InfoModal } from '../InfoModal/InfoModal';
+import { Toolbar } from '../Toolbar/Toolbar';
+import { MobileNav } from '../MobileNav/MobileNav';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import styles from './Layout.module.css';
 
 export function Layout() {
@@ -14,21 +17,19 @@ export function Layout() {
         error,
         isValid,
         setText,
-        format,
-        minify,
-        theme,
-        setTheme,
-        setAiModalOpen,
-        fixJsonWithAI,
-        isFixing,
-        viewMode,
-        setViewMode,
-        generateSchemaWithAI,
-        explainJsonWithAI,
-        isGenerating,
         clear,
-        setInfoModalOpen
+        viewMode,
+        setViewMode
     } = useJsonStore();
+
+    const isMobile = useIsMobile();
+
+    // Force safe view mode on mobile (no split)
+    useEffect(() => {
+        if (isMobile && viewMode === 'split') {
+            setViewMode('code');
+        }
+    }, [isMobile, viewMode, setViewMode]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -116,131 +117,22 @@ export function Layout() {
                 </div>
             )}
 
-            <header className={styles.header}>
-                <div className={styles.logo}>
-                    <FileJson size={20} className={styles.logoIcon} />
-                    <span className={styles.logoText}>JSON Studio</span>
-                </div>
-
-                <div className={styles.toolbar}>
-                    {/* File Group */}
-                    <div className={styles.toolGroup}>
-                        <button onClick={handleUploadClick} className={styles.toolButton} title="Open JSON File">
-                            <Upload size={16} />
-                        </button>
-                        <button onClick={handleDownload} className={styles.toolButton} title="Save as JSON" disabled={!rawText}>
-                            <Download size={16} />
-                        </button>
-                    </div>
-
-                    <div className={styles.divider} />
-
-                    {/* Edit Group */}
-                    <div className={styles.toolGroup}>
-                        <button onClick={handleCopyInput} className={styles.toolButton} title="Copy All" disabled={!rawText}>
-                            <Copy size={16} />
-                        </button>
-                        <button onClick={handleClear} className={styles.toolButton} title="Clear Editor">
-                            <Trash2 size={16} />
-                        </button>
-                        <button onClick={format} className={styles.toolButton} title="Format / Prettify" disabled={!isValid || !rawText}>
-                            <AlignLeft size={16} />
-                        </button>
-                        <button onClick={minify} className={styles.toolButton} title="Minify / Compact" disabled={!isValid || !rawText}>
-                            <Minimize size={16} />
-                        </button>
-                    </div>
-
-                    {/* AI Group */}
-                    {isValid && rawText && (
-                        <>
-                            <div className={styles.divider} />
-                            <div className={styles.toolGroup}>
-                                <button onClick={generateSchemaWithAI} className={styles.toolButton} title="Generate Schema" disabled={isGenerating}>
-                                    <FileCode size={16} className={isGenerating ? styles.spin : ''} />
-                                    <span>Schema</span>
-                                </button>
-                                <button onClick={explainJsonWithAI} className={styles.toolButton} title="Explain Data" disabled={isGenerating}>
-                                    <MessageSquare size={16} className={isGenerating ? styles.spin : ''} />
-                                    <span>Explain</span>
-                                </button>
-                            </div>
-                        </>
-                    )}
-
-                    {!isValid && rawText && (
-                        <>
-                            <div className={styles.divider} />
-                            <button onClick={fixJsonWithAI} className={`${styles.toolButton} ${styles.fixBtn}`} title="Auto-Fix JSON" disabled={isFixing || isGenerating}>
-                                <Wand2 size={16} className={isFixing ? styles.spin : ''} />
-                                <span>{isFixing ? 'Fixing...' : 'Fix'}</span>
-                            </button>
-                        </>
-                    )}
-
-                    <div className={styles.divider} />
-
-                    {/* View Group */}
-                    <div className={styles.viewToggles}>
-                        <button
-                            className={`${styles.toolButton} ${viewMode === 'code' ? styles.active : ''}`}
-                            onClick={() => setViewMode('code')}
-                            title="Code Only"
-                        >
-                            <Code size={16} />
-                        </button>
-                        <button
-                            className={`${styles.toolButton} ${viewMode === 'split' ? styles.active : ''}`}
-                            onClick={() => setViewMode('split')}
-                            title="Split View"
-                        >
-                            <Columns size={16} />
-                        </button>
-                        <button
-                            className={`${styles.toolButton} ${viewMode === 'tree' ? styles.active : ''}`}
-                            onClick={() => setViewMode('tree')}
-                            title="Tree Only"
-                        >
-                            <FolderTree size={16} />
-                        </button>
-                    </div>
-                </div>
-
-                <div className={styles.actions}>
-                    <div className={styles.toolGroup}>
-                        <button
-                            onClick={() => setInfoModalOpen(true)}
-                            className={styles.toolButton}
-                            title="Help & Info"
-                        >
-                            <HelpCircle size={16} />
-                        </button>
-                        <button
-                            onClick={() => setAiModalOpen(true)}
-                            className={styles.toolButton}
-                            title="AI Settings"
-                        >
-                            <Settings size={16} />
-                        </button>
-                        <button
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className={styles.toolButton}
-                            title="Toggle Theme"
-                        >
-                            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                        </button>
-                    </div>
-                </div>
-            </header>
+            <Toolbar
+                onUpload={handleUploadClick}
+                onDownload={handleDownload}
+                onCopy={handleCopyInput}
+                onClear={handleClear}
+                isMobile={isMobile}
+            />
 
             <main className={styles.main}>
-                {(viewMode === 'code' || viewMode === 'split') && (
+                {(!isMobile || viewMode === 'code') && (
                     <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full}`}>
                         <Editor initialValue={rawText} onChange={setText} />
                     </div>
                 )}
 
-                {(viewMode === 'tree' || viewMode === 'split') && (
+                {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
                     <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full} ${styles.treePane}`}>
                         <JsonTree />
                     </div>
@@ -268,6 +160,8 @@ export function Layout() {
                     <span>{rawText.length} chars</span>
                 </div>
             </footer>
+
+            {isMobile && <MobileNav />}
         </div>
     );
 }
