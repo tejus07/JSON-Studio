@@ -18,9 +18,12 @@ body {
   background-color: var(--bg-app);
   color: var(--text-main);
   font-family: var(--font-sans);
-  height: 100vh;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
-  /* App-like feel */
+  /* Prevent body scroll completely */
+  position: fixed;
+  /* Strongest lock for mobile */
 }
 
 input,

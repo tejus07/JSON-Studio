@@ -1,9 +1,9 @@
 .layout {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    /* Dynamic viewport height for mobile browsers */
+    height: 100%;
+    /* Fit within fixed body */
+    /* Dynamic viewport height handled by body now */
     width: 100vw;
     background-color: var(--bg-app);
 }
