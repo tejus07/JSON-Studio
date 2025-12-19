@@ -74,11 +74,9 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                         <div className={styles.toolGroup}>
                             <button onClick={generateSchemaWithAI} className={styles.toolButton} title="Generate Schema" disabled={isGenerating}>
                                 <FileCode size={16} className={isGenerating ? styles.spin : ''} />
-                                <span>Schema</span>
                             </button>
                             <button onClick={explainJsonWithAI} className={styles.toolButton} title="Explain Data" disabled={isGenerating}>
                                 <MessageSquare size={16} className={isGenerating ? styles.spin : ''} />
-                                <span>Explain</span>
                             </button>
                         </div>
                     </>
