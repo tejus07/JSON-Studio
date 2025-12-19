@@ -71,6 +71,18 @@
     justify-content: center;
 }
 
+.primaryBtn {
+    background-color: var(--color-primary);
+    color: white !important;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.primaryBtn:hover {
+    background-color: var(--color-primary-hover);
+}
+
 .actionBtn:hover {
     background-color: var(--bg-hover);
     color: var(--text-main);

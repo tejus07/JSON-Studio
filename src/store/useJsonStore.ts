@@ -33,8 +33,8 @@ interface JsonState {
 
     isGeneratingSchema: boolean;
     isGeneratingExplanation: boolean;
-    generatedContent: { title: string; content: string; type: 'markdown' | 'code' } | null;
-    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' } | null) => void;
+    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview' } | null;
+    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview' } | null) => void;
 
     generateSchemaWithAI: () => Promise<void>;
     explainJsonWithAI: () => Promise<void>;
@@ -89,8 +89,9 @@ export const useJsonStore = create<JsonState>()(
                 set({ isFixing: true });
                 try {
                     const fixed = await fixJsonWithGemini(rawText, apiKey, preferredModel);
-                    get().setText(fixed);
-                    toast.success('JSON fixed via AI');
+                    // Preview fit first
+                    set({ generatedContent: { title: 'Review Fix', content: fixed, type: 'fix-preview' } });
+                    toast.success('Fix ready for review');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'Failed to fix JSON';
                     toast.error(msg);
