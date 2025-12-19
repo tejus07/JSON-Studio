@@ -69,8 +69,19 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
 
         // Parse the result
         const result = JSON.parse(cleanText);
+        let fixedString = typeof result.fixed === 'string' ? result.fixed : JSON.stringify(result.fixed);
+
+        // Ensure it is pretty-printed for readability in the modal
+        try {
+            const parsedObj = JSON.parse(fixedString);
+            fixedString = JSON.stringify(parsedObj, null, 2);
+        } catch (e) {
+            // If formatting fails (e.g. AI returned partial JSON), use original
+            console.warn('Failed to format fixed JSON:', e);
+        }
+
         return {
-            fixed: typeof result.fixed === 'string' ? result.fixed : JSON.stringify(result.fixed),
+            fixed: fixedString,
             explanation: result.explanation || 'Fixed syntax errors'
         };
 
