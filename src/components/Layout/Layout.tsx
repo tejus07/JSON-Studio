@@ -11,6 +11,8 @@ import { PromptModal } from '../PromptModal/PromptModal';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { EmptyState } from '../EmptyState/EmptyState';
 import styles from './Layout.module.css';
 
 export function Layout() {
@@ -26,6 +28,7 @@ export function Layout() {
     } = useJsonStore();
 
     const isMobile = useIsMobile();
+    useKeyboardShortcuts();
 
     // Force safe view mode on mobile (no split)
     useEffect(() => {
@@ -98,6 +101,23 @@ export function Layout() {
         if (file) readFile(file);
     };
 
+    // Auto-paste handler for Empty State
+    useEffect(() => {
+        const handlePaste = (e: ClipboardEvent) => {
+            // Only capture if empty and not typing in an input (like the modal)
+            if (!rawText && e.clipboardData && (e.target === document.body || e.target === document.documentElement)) {
+                const text = e.clipboardData.getData('text');
+                if (text) {
+                    setText(text);
+                    toast.success('Pasted from clipboard');
+                }
+            }
+        };
+
+        window.addEventListener('paste', handlePaste);
+        return () => window.removeEventListener('paste', handlePaste);
+    }, [rawText, setText]);
+
     return (
         <div
             className={styles.layout}
@@ -142,16 +162,22 @@ export function Layout() {
             />
 
             <main className={styles.main}>
-                {(!isMobile || viewMode === 'code') && (
-                    <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full}`}>
-                        <Editor initialValue={rawText} onChange={setText} />
-                    </div>
-                )}
+                {!rawText ? (
+                    <EmptyState />
+                ) : (
+                    <>
+                        {(!isMobile || viewMode === 'code') && (
+                            <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full}`}>
+                                <Editor initialValue={rawText} onChange={setText} />
+                            </div>
+                        )}
 
-                {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
-                    <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full} ${styles.treePane}`}>
-                        <JsonTree />
-                    </div>
+                        {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
+                            <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full} ${styles.treePane}`}>
+                                <JsonTree />
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
 
