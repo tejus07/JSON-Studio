@@ -41,28 +41,42 @@ export function InfoModal() {
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
                                 <Cpu size={20} />
-                                <h4>AI Features</h4>
+                                <h4>AI Power Tools</h4>
                             </div>
                             <p>
-                                <strong>Bring Your Own Key</strong>: Use your personal Gemini or OpenAI key.
-                                Keys are stored locally. Zero middleman latency.
+                                Press <kbd>Cmd+K</kbd> to open the Command Palette.
                             </p>
                             <ul className={styles.list}>
-                                <li>✨ <strong>Auto-Fix</strong>: Repairs invalid JSON.</li>
-                                <li>📝 <strong>Explain</strong>: Summarizes data structure.</li>
-                                <li>🛠 <strong>Schema</strong>: Generates TypeScript interfaces.</li>
+                                <li>✨ <strong>Generate</strong>: Create mock data from descriptions.</li>
+                                <li>🔍 <strong>Query</strong>: Filter using natural language.</li>
+                                <li>🔄 <strong>Convert</strong>: Transform JSON to CSV/XML/YAML.</li>
+                                <li>🐛 <strong>Auto-Fix</strong>: Repair invalid JSON instantly.</li>
                             </ul>
                         </div>
 
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
                                 <Zap size={20} />
-                                <h4>Pro Tips</h4>
+                                <h4>Pro Shortcuts</h4>
                             </div>
-                            <ul className={styles.list}>
-                                <li><strong>Path Copy</strong>: Click any key in Tree View to copy its path (e.g. <code>users[0].id</code>).</li>
-                                <li><strong>Drag & Drop</strong>: Drop any JSON file to open.</li>
-                                <li><strong>Auto-Save</strong>: Never worry about refreshing.</li>
+                            <ul className={styles.shortcutList}>
+                                <li>
+                                    <span>Command Palette</span>
+                                    <kbd>Cmd + K</kbd>
+                                </li>
+                                <li>
+                                    <span>Quick Fix</span>
+                                    <kbd>Cmd + Shift + F</kbd>
+                                </li>
+                                <li>
+                                    <span>Save File</span>
+                                    <kbd>Cmd + S</kbd>
+                                </li>
+                                <li>
+                                    <span>Magic Paste</span>
+                                    <kbd>Cmd + V</kbd>
+                                    <span className={styles.subtext}>(on empty screen)</span>
+                                </li>
                             </ul>
                         </div>
                     </div>

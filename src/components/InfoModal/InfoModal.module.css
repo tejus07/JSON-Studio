@@ -169,7 +169,42 @@
     content: "•";
     position: absolute;
     left: 0;
-    color: var(--accent-primary);
+    color: var(--color-primary);
+}
+
+.shortcutList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.shortcutList li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.shortcutList kbd {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    min-width: 24px;
+    text-align: center;
+}
+
+.subtext {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-left: 4px;
 }
 
 .footer {
