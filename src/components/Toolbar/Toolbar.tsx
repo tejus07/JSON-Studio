@@ -1,4 +1,5 @@
-import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText } from 'lucide-react';
+import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './Toolbar.module.css';
@@ -28,8 +29,22 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
         explainJsonWithAI,
         isGeneratingSchema,
         isGeneratingExplanation,
-        setInfoModalOpen
+        setInfoModalOpen,
+        setPromptModalOpen
     } = useJsonStore();
+
+    const [isAiMenuOpen, setAiMenuOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null); // Ref for the whole container
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setAiMenuOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const isBusy = isFixing || isGeneratingSchema || isGeneratingExplanation;
 
@@ -71,43 +86,58 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                     </button>
                 </div>
 
-                {/* AI Group */}
-                {rawText && (
-                    <>
-                        <div className={styles.divider} />
-                        <div className={styles.toolGroup}>
-                            <button
-                                className={`${styles.toolButton} ${styles.fixBtn}`}
-                                onClick={fixJsonWithAI}
-                                disabled={isBusy || isValid} // Disable if valid, or if any AI operation is busy
-                                title="Fix with AI"
-                            >
-                                {isFixing ? <Loader2 size={13} className={styles.spin} /> : <Wand2 size={13} />}
-                                {(!isMobile || (isMobile && !isBusy)) && <span className={styles.btnText}>Fix</span>}
+                {/* AI Group (Magic Menu) */}
+                <div className={styles.toolGroup} style={{ position: 'relative' }} ref={containerRef}>
+                    <button
+                        className={`${styles.toolButton} ${styles.aiTrigger}`}
+                        onClick={() => setAiMenuOpen(!isAiMenuOpen)}
+                        disabled={isBusy}
+                        title="AI Actions"
+                    >
+                        {isBusy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
+                        {!isMobile && <span className={styles.btnText}>AI</span>}
+                    </button>
+
+                    {isAiMenuOpen && !isBusy && (
+                        <div className={styles.aiDropdown}>
+                            <div className={styles.menuHeader}>AI Tools</div>
+
+                            {!isValid && rawText && (
+                                <button className={styles.menuItem} onClick={() => { fixJsonWithAI(); setAiMenuOpen(false); }}>
+                                    <Wand2 size={14} className={styles.itemIcon} />
+                                    <span>Fix JSON</span>
+                                </button>
+                            )}
+
+                            <button className={styles.menuItem} onClick={() => { setPromptModalOpen(true, 'generate'); setAiMenuOpen(false); }}>
+                                <Sparkles size={14} className={styles.itemIcon} />
+                                <span>Generate Data...</span>
                             </button>
 
-                            <button
-                                className={styles.toolButton}
-                                onClick={generateSchemaWithAI}
-                                disabled={isBusy || !isValid}
-                                title="Generate Schema"
-                            >
-                                {isGeneratingSchema ? <Loader2 size={15} className={styles.spin} /> : <FileJson size={15} />}
-                                <span className={styles.btnText}>Schema</span>
+                            <button className={styles.menuItem} onClick={() => { setPromptModalOpen(true, 'query'); setAiMenuOpen(false); }} disabled={!isValid || !rawText}>
+                                <FileJson size={14} className={styles.itemIcon} />
+                                <span>Natural Language Query...</span>
                             </button>
 
-                            <button
-                                className={styles.toolButton}
-                                onClick={explainJsonWithAI}
-                                disabled={isBusy || !isValid}
-                                title="Explain JSON"
-                            >
-                                {isGeneratingExplanation ? <Loader2 size={15} className={styles.spin} /> : <MessageSquareText size={15} />}
-                                <span className={styles.btnText}>Explain</span>
+                            <button className={styles.menuItem} onClick={() => { setPromptModalOpen(true, 'convert'); setAiMenuOpen(false); }} disabled={!isValid || !rawText}>
+                                <MessageSquareText size={14} className={styles.itemIcon} />
+                                <span>Smart Convert...</span>
+                            </button>
+
+                            <div className={styles.menuDivider} />
+
+                            <button className={styles.menuItem} onClick={() => { generateSchemaWithAI(); setAiMenuOpen(false); }} disabled={!isValid || !rawText}>
+                                <Code size={14} className={styles.itemIcon} />
+                                <span>Generate Schema</span>
+                            </button>
+
+                            <button className={styles.menuItem} onClick={() => { explainJsonWithAI(); setAiMenuOpen(false); }} disabled={!isValid || !rawText}>
+                                <HelpCircle size={14} className={styles.itemIcon} />
+                                <span>Explain Data</span>
                             </button>
                         </div>
-                    </>
-                )}
+                    )}
+                </div>
 
                 {!isMobile && (
                     <>

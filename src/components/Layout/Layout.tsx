@@ -7,6 +7,7 @@ import { Toaster, toast } from 'sonner';
 import { JsonTree } from '../JsonTree/JsonTree';
 import { ContentModal } from '../ContentModal/ContentModal';
 import { InfoModal } from '../InfoModal/InfoModal';
+import { PromptModal } from '../PromptModal/PromptModal';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -116,6 +117,7 @@ export function Layout() {
             <SettingsModal />
             <ContentModal />
             <InfoModal />
+            {useJsonStore.getState().isPromptModalOpen && <PromptModal />} {/* Added PromptModal */}
             <input
                 type="file"
                 ref={fileInputRef}

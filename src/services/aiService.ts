@@ -118,6 +118,51 @@ export const explainJson = async (jsonContent: string, apiKey: string, preferred
     );
 };
 
+export const generateMockData = async (prompt: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    // Note: For generation, the "content" passed to callGemini is actually the prompt itself.
+    // We treat the prompt as the "JSON" argument in the helper, but the helper adds "JSON: ..." which is weird.
+    // Let's create a specific helper or just call fetch directly. Reusing logic is better.
+    // We will pass empty string as content and put everything in system prompt.
+
+    return callGemini(
+        '',
+        apiKey,
+        preferredModel,
+        `Generate realistic JSON data based on this request: "${prompt}".
+        Rules:
+        1. Output ONLY valid JSON.
+        2. Format nicely with 2 spaces.
+        3. Make the data look real (names, emails, etc).`
+    );
+};
+
+export const nlQuery = async (jsonContent: string, query: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    return callGemini(
+        jsonContent,
+        apiKey,
+        preferredModel,
+        `Act as a JSON Query Engine. Filter/Extract data from the JSON below based on this query: "${query}".
+        Rules:
+        1. Output ONLY the resulting JSON data.
+        2. If the query asks for a count, return {"count": N}.
+        3. If the query asks for specific fields, return an array of objects with only those fields.
+        4. Maintain original structure if just filtering.`
+    );
+};
+
+export const smartConvert = async (jsonContent: string, format: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    return callGemini(
+        jsonContent,
+        apiKey,
+        preferredModel,
+        `Convert the following JSON to ${format}.
+        Rules:
+        1. Output ONLY the converted code (e.g. valid CSV, YAML, XML).
+        2. Do NOT wrap in markdown fences if possible, just the raw text.
+        3. Ensure syntax is correct for ${format}.`
+    );
+};
+
 // Helper to reuse the fetch logic
 const callGemini = async (content: string, apiKey: string, preferredModel: string, systemPrompt: string): Promise<string> => {
     let modelName = preferredModel;

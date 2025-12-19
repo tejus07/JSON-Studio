@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { safeParseJSON, formatJSON, minifyJSON } from '../utils/jsonUtils';
-import { fixJsonWithGemini, generateSchema, explainJson } from '../services/aiService';
+import { fixJsonWithGemini, generateSchema, explainJson, generateMockData, nlQuery, smartConvert } from '../services/aiService';
+
+type PromptAction = 'generate' | 'query' | 'convert' | null;
 
 interface JsonState {
     rawText: string;
@@ -27,6 +29,12 @@ interface JsonState {
 
     isInfoModalOpen: boolean;
     setInfoModalOpen: (open: boolean) => void;
+
+    // Prompt Modal State
+    isPromptModalOpen: boolean;
+    promptAction: PromptAction;
+    setPromptModalOpen: (open: boolean, action?: PromptAction) => void;
+    executeAiPrompt: (input: string) => Promise<void>;
 
     isFixing: boolean;
     fixJsonWithAI: () => Promise<void>;
@@ -58,6 +66,8 @@ export const useJsonStore = create<JsonState>()(
             preferredModel: 'auto',
             isAiModalOpen: false,
             isInfoModalOpen: false,
+            isPromptModalOpen: false,
+            promptAction: null,
 
             // View state
             viewMode: 'split',
@@ -80,6 +90,47 @@ export const useJsonStore = create<JsonState>()(
 
             setAiModalOpen: (open) => set({ isAiModalOpen: open }),
             setInfoModalOpen: (open) => set({ isInfoModalOpen: open }),
+            setPromptModalOpen: (open, action = null) => set({ isPromptModalOpen: open, promptAction: action }),
+
+            executeAiPrompt: async (input: string) => {
+                const { apiKey, rawText, preferredModel, promptAction } = get();
+                if (!apiKey || !promptAction) return;
+
+                set({ isPromptModalOpen: false, isGeneratingSchema: true }); // Reuse spinner or add specific one. Reuse for simplicity.
+
+                try {
+                    let result = '';
+                    let title = '';
+                    let type: 'code' | 'markdown' | 'fix-preview' = 'code'; // Default to code view
+
+                    if (promptAction === 'generate') {
+                        result = await generateMockData(input, apiKey, preferredModel);
+                        title = 'Generated Data';
+                        type = 'fix-preview'; // Use fix-preview so users can "Apply" it to editor
+                    } else if (promptAction === 'query') {
+                        result = await nlQuery(rawText, input, apiKey, preferredModel);
+                        title = 'Query Result';
+                        type = 'code'; // Just view, copy manually? Or fix-preview? Let's use code view for now, usually you don't overwrite source with query result.
+                    } else if (promptAction === 'convert') {
+                        // Input IS the format for convert
+                        // Actually input is the user text. For convert "Convert to CSV". 
+                        // But smartConvert takes (json, format). 
+                        // Let's assume input implies format or ask specifically.
+                        // Ideally prompt is "Convert to CSV".
+                        result = await smartConvert(rawText, input, apiKey, preferredModel);
+                        title = `Converted to ${input}`;
+                        type = 'code';
+                    }
+
+                    set({ generatedContent: { title, content: result, type } });
+                    toast.success('Action completed');
+                } catch (e: unknown) {
+                    const msg = e instanceof Error ? e.message : 'AI Action Failed';
+                    toast.error(msg);
+                } finally {
+                    set({ isGeneratingSchema: false });
+                }
+            },
 
             isFixing: false,
             fixJsonWithAI: async () => {
