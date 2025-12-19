@@ -94,6 +94,32 @@
     padding: 0;
     background-color: var(--bg-app);
     position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.explanationBox {
+    background-color: rgba(234, 179, 8, 0.15);
+    /* Amber-500 with low opacity */
+    border-bottom: 1px solid rgba(234, 179, 8, 0.3);
+    padding: var(--spacing-3) var(--spacing-4);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    color: #ffd60a;
+    /* Bright yellow text */
+    flex-shrink: 0;
+}
+
+.explanationIcon {
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+.explanationText {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
 }
 
 /* Markdown Styles */

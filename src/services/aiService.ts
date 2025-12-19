@@ -1,4 +1,4 @@
-export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<{ fixed: string; explanation: string }> => {
     // 1. Get the best model dynamically, or use preferred
     let modelName = preferredModel;
 
@@ -8,14 +8,19 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
 
     console.log('Using Gemini Model:', modelName);
 
-    const PROMPT = `You are a JSON repair tool. Your task is to fix the following invalid JSON string.
-  Rules:
-  1. Output ONLY the valid JSON. No markdown, no "here is the fixed json", no explanations.
-  2. If it is already valid, return it as is.
-  3. Format it nicely with 2 spaces indentation.
-  
-  Invalid JSON:
-  ${jsonContent}`;
+    const PROMPT = `You are a JSON repair tool. Fix this invalid JSON and explain what was wrong.
+    Rules:
+    1. Output strictly a JSON object with this structure:
+       {
+         "fixed": "THE VALID JSON STRING HERE",
+         "explanation": "Short summary of the syntax errors found (max 15 words)"
+       }
+    2. Do NOT use markdown fences around the Output JSON. Just raw JSON.
+    3. The "fixed" field MUST be the valid, minified or mostly compact JSON.
+    4. If it's already valid, just return it in "fixed" and say "Valid JSON" in explanation.
+    
+    Invalid JSON:
+    ${jsonContent}`;
 
     try {
         // modelName usually comes as "models/gemini-..." from the list endpoint
@@ -61,9 +66,17 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
 
         // Clean up any markdown code blocks if the AI disobeyed
         const cleanText = text.replace(/```json\n?|```/g, '').trim();
-        return cleanText;
+
+        // Parse the result
+        const result = JSON.parse(cleanText);
+        return {
+            fixed: typeof result.fixed === 'string' ? result.fixed : JSON.stringify(result.fixed),
+            explanation: result.explanation || 'Fixed syntax errors'
+        };
+
     } catch (error) {
         console.error('AI Fix Error:', error);
+        // Fallback: If parsing fails, try to return basic fix logic or re-throw
         throw error;
     }
 };

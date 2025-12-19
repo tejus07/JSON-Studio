@@ -1,4 +1,4 @@
-import { X, Copy, Check, Sparkles, FileCode, Wand2 } from 'lucide-react'; // Added icons
+import { X, Copy, Check, Sparkles, FileCode, Wand2, Info } from 'lucide-react'; // Added icons
 import { useState } from 'react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { toast } from 'sonner';
@@ -82,6 +82,12 @@ export function ContentModal() {
                     </div>
                 </div>
                 <div className={styles.body}>
+                    {generatedContent.explanation && (
+                        <div className={styles.explanationBox}>
+                            <Info size={16} className={styles.explanationIcon} />
+                            <span className={styles.explanationText}>{generatedContent.explanation}</span>
+                        </div>
+                    )}
                     {generatedContent.type === 'markdown' ? (
                         <div className={styles.markdownWrapper}>
                             <Markdown>{generatedContent.content}</Markdown>
