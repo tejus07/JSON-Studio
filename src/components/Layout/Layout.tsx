@@ -3,6 +3,7 @@ import { Editor } from '../Editor/Editor';
 import { SettingsModal } from '../SettingsModal/SettingsModal';
 import { useRef, useState, useEffect } from 'react';
 import { Upload, Check, AlertTriangle } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
 import { JsonTree } from '../JsonTree/JsonTree';
 import { ContentModal } from '../ContentModal/ContentModal';
 import { InfoModal } from '../InfoModal/InfoModal';
@@ -19,7 +20,8 @@ export function Layout() {
         setText,
         clear,
         viewMode,
-        setViewMode
+        setViewMode,
+        theme
     } = useJsonStore();
 
     const isMobile = useIsMobile();
@@ -36,12 +38,13 @@ export function Layout() {
 
     const handleCopyInput = () => {
         navigator.clipboard.writeText(rawText);
-        // Could show a toast here
+        toast.success('JSON copied to clipboard');
     };
 
     const handleClear = () => {
         if (confirm('Are you sure you want to clear the editor?')) {
             clear();
+            toast.success('Editor cleared');
         }
     };
 
@@ -55,6 +58,7 @@ export function Layout() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        toast.success('File saved as data.json');
     };
 
     const handleUploadClick = () => {
@@ -71,6 +75,7 @@ export function Layout() {
         reader.onload = (e) => {
             const content = e.target?.result as string;
             setText(content);
+            toast.success('File loaded successfully');
         };
         reader.readAsText(file);
     };
@@ -99,6 +104,15 @@ export function Layout() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
+            <Toaster
+                position={isMobile ? "top-center" : "bottom-right"}
+                theme={theme === 'dark' ? 'dark' : 'light'}
+                richColors
+                closeButton
+                toastOptions={{
+                    style: isMobile ? { marginTop: '50px' } : undefined
+                }}
+            />
             <SettingsModal />
             <ContentModal />
             <InfoModal />

@@ -135,7 +135,7 @@
 }
 
 .footer {
-    height: 32px;
+    height: var(--footer-height);
     border-top: 1px solid var(--border-subtle);
     background-color: var(--bg-panel);
     display: flex;

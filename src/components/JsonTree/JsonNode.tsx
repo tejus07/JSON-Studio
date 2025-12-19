@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ChevronRight, ChevronDown, Braces, Brackets } from 'lucide-react';
+import { toast } from 'sonner';
 import styles from './JsonTree.module.css';
 
 interface JsonNodeProps {
@@ -10,7 +11,7 @@ interface JsonNodeProps {
     path?: string;
 }
 
-export function JsonNode({ name, value, isLast, depth = 0, path = '' }: JsonNodeProps) {
+export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }: JsonNodeProps) {
     const [expanded, setExpanded] = useState(true);
     const [justCopied, setJustCopied] = useState(false);
 
@@ -26,6 +27,7 @@ export function JsonNode({ name, value, isLast, depth = 0, path = '' }: JsonNode
 
         navigator.clipboard.writeText(pathRef);
         setJustCopied(true);
+        toast.success(`Copied path: ${pathRef}`);
         setTimeout(() => setJustCopied(false), 1500);
     };
 
@@ -144,3 +146,5 @@ export function JsonNode({ name, value, isLast, depth = 0, path = '' }: JsonNode
         </div>
     );
 }
+
+export const JsonNode = memo(JsonNodeComponent);

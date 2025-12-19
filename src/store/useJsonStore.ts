@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'sonner';
 import { safeParseJSON, formatJSON, minifyJSON } from '../utils/jsonUtils';
 import { fixJsonWithGemini, generateSchema, explainJson } from '../services/aiService';
 
@@ -87,8 +88,10 @@ export const useJsonStore = create<JsonState>()(
                 try {
                     const fixed = await fixJsonWithGemini(rawText, apiKey, preferredModel);
                     get().setText(fixed);
-                } catch (e: any) {
-                    alert(e.message || 'Failed to fix JSON');
+                    toast.success('JSON fixed via AI');
+                } catch (e: unknown) {
+                    const msg = e instanceof Error ? e.message : 'Failed to fix JSON';
+                    toast.error(msg);
                 } finally {
                     set({ isFixing: false });
                 }
@@ -102,8 +105,10 @@ export const useJsonStore = create<JsonState>()(
                 try {
                     const schema = await generateSchema(rawText, apiKey, preferredModel);
                     set({ generatedContent: { title: 'TypeScript Schema', content: schema } });
-                } catch (e: any) {
-                    alert(e.message || 'Failed to generate schema');
+                    toast.success('Schema generated');
+                } catch (e: unknown) {
+                    const msg = e instanceof Error ? e.message : 'Failed to generate schema';
+                    toast.error(msg);
                 } finally {
                     set({ isGenerating: false });
                 }
@@ -117,8 +122,10 @@ export const useJsonStore = create<JsonState>()(
                 try {
                     const explanation = await explainJson(rawText, apiKey, preferredModel);
                     set({ generatedContent: { title: 'Explanation', content: explanation } });
-                } catch (e: any) {
-                    alert(e.message || 'Failed to explain JSON');
+                    toast.success('Explanation generated');
+                } catch (e: unknown) {
+                    const msg = e instanceof Error ? e.message : 'Failed to explain JSON';
+                    toast.error(msg);
                 } finally {
                     set({ isGenerating: false });
                 }

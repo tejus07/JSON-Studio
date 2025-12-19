@@ -38,6 +38,12 @@
   --spacing-6: 24px;
   --spacing-8: 32px;
 
+  /* Layout Dimensions */
+  --header-height: 54px;
+  --header-height-mobile: 50px;
+  --footer-height: 32px;
+  --mobile-nav-height: 56px;
+
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;

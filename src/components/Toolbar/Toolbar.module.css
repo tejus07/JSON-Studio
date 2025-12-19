@@ -1,5 +1,5 @@
 .header {
-    height: 54px;
+    height: var(--header-height);
     border-bottom: 1px solid var(--border-subtle);
     background-color: var(--bg-panel);
     display: flex;
@@ -148,7 +148,7 @@
 @media (max-width: 600px) {
     .header {
         padding: 0 var(--spacing-2);
-        height: 50px;
+        height: var(--header-height-mobile);
     }
 
     .logoText {

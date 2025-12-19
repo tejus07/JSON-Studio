@@ -1,4 +1,5 @@
 import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, FileCode, MessageSquare, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon } from 'lucide-react';
+import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './Toolbar.module.css';
 
@@ -59,10 +60,10 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                             <Trash2 size={16} />
                         </button>
                     )}
-                    <button onClick={format} className={styles.toolButton} title="Format / Prettify" disabled={!isValid || !rawText}>
+                    <button onClick={() => { format(); toast.success('JSON Formatted'); }} className={styles.toolButton} title="Format / Prettify" disabled={!isValid || !rawText}>
                         <AlignLeft size={16} />
                     </button>
-                    <button onClick={minify} className={styles.toolButton} title="Minify / Compact" disabled={!isValid || !rawText}>
+                    <button onClick={() => { minify(); toast.success('JSON Minified'); }} className={styles.toolButton} title="Minify / Compact" disabled={!isValid || !rawText}>
                         <Minimize size={16} />
                     </button>
                 </div>
