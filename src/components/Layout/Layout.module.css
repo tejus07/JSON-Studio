@@ -1,0 +1,104 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-app);
+}
+
+.header {
+    height: 54px;
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-4);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.logoIcon {
+    color: var(--color-primary);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background-color: var(--bg-surface);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.toolButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.toolButton:hover:not(:disabled) {
+    background-color: var(--bg-panel);
+    color: var(--text-main);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.toolButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.footer {
+    height: 32px;
+    border-top: 1px solid var(--border-subtle);
+    background-color: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-4);
+    font-size: 12px;
+    font-family: var(--font-mono);
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+}
+
+.footer.valid .status {
+    color: var(--color-success);
+}
+
+.footer.invalid .status {
+    color: var(--color-danger);
+}
+
+.meta {
+    color: var(--text-faint);
+
+    to {
+        transform: rotate(360deg);
+    }
+}

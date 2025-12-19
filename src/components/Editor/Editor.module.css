@@ -1,0 +1,27 @@
+.editorContainer {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+/* CodeMirror Overrides for Custom Look */
+.editorContainer :global(.cm-editor) {
+    height: 100%;
+}
+
+.editorContainer :global(.cm-scroller) {
+    font-family: var(--font-mono) !important;
+}
+
+.editorContainer :global(.cm-gutters) {
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+}
+
+.editorContainer :global(.cm-activeLineGutter) {
+    background-color: transparent;
+    color: var(--text-main);
+}

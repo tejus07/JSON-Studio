@@ -1,0 +1,165 @@
+{
+    "project_id": "titan_colony_alpha_01",
+    "metadata": {
+        "created_at": "2084-11-12T08:30:00Z",
+        "updated_at": "2084-11-14T14:45:22Z",
+        "author": {
+            "id": 4291,
+            "name": "Dr. Elena Vance",
+            "roles": [
+                "admin",
+                "architect",
+                "terraformer"
+            ],
+            "clearance_level": 5
+        },
+        "tags": [
+            "simulation",
+            "critical",
+            "atmospheric"
+        ],
+        "is_simulation": true,
+        "version": 4.2
+    },
+    "configurations": {
+        "atmosphere": {
+            "composition": [
+                {
+                    "element": "Nitrogen",
+                    "percentage": 94.2,
+                    "stable": true
+                },
+                {
+                    "element": "Methane",
+                    "percentage": 5.1,
+                    "stable": false
+                },
+                {
+                    "element": "Hydrogen",
+                    "percentage": 0.7,
+                    "stable": true
+                }
+            ],
+            "pressure": {
+                "value": 146.7,
+                "unit": "kPa",
+                "history": [
+                    145.2,
+                    145.8,
+                    146.1,
+                    146.7
+                ]
+            }
+        },
+        "energy_grid": {
+            "status": "nominal",
+            "output_mw": 8500,
+            "sources": {
+                "solar": {
+                    "active": false,
+                    "efficiency": 0.12
+                },
+                "nuclear": {
+                    "active": true,
+                    "reactors": [
+                        {
+                            "id": "R1",
+                            "temp": 450,
+                            "fuel_integrity": 0.98
+                        },
+                        {
+                            "id": "R2",
+                            "temp": 452,
+                            "fuel_integrity": 0.95
+                        }
+                    ]
+                },
+                "geothermal": null
+            }
+        },
+        "log_modules": {
+            "enabled": true,
+            "retention_days": 365,
+            "remote_backup": {
+                "server": "earth_relay_04",
+                "active": true,
+                "last_ping_ms": 24500
+            }
+        }
+    },
+    "sectors": [
+        {
+            "id": "SEC-01",
+            "name": "Habitation Dome A",
+            "population": 250,
+            "zones": [
+                {
+                    "type": "residential",
+                    "units": [
+                        {
+                            "id": "U-101",
+                            "occupants": 3,
+                            "amenities": [
+                                "recycler",
+                                "viewport"
+                            ]
+                        },
+                        {
+                            "id": "U-102",
+                            "occupants": 1,
+                            "amenities": [
+                                "recycler"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "commercial",
+                    "shops": []
+                }
+            ]
+        },
+        {
+            "id": "SEC-02",
+            "name": "Hydroponics Bay",
+            "yield_projection": {
+                "q1": 4500,
+                "q2": 4800,
+                "q3": 5100
+            },
+            "crops": [
+                {
+                    "name": "Potatoes (Martian Variant)",
+                    "cycle_days": 45,
+                    "needs": {
+                        "water": "high",
+                        "light": "moderate"
+                    }
+                },
+                {
+                    "name": "Soybeans",
+                    "cycle_days": 60,
+                    "needs": {
+                        "water": "moderate",
+                        "light": "high"
+                    }
+                }
+            ]
+        }
+    ],
+    "system_alerts": [
+        {
+            "code": "WARN_039",
+            "message": "Methane levels fluctuating in Sector 2",
+            "timestamp": "2084-11-14T14:40:00Z",
+            "resolved": false
+        },
+        null,
+        {
+            "code": "INFO_901",
+            "message": "Daily backup completed successfully",
+            "timestamp": "2084-11-14T12:00:00Z",
+            "resolved": true
+        }
+    ]
+}
