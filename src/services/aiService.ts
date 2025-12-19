@@ -68,6 +68,72 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
     }
 };
 
+export const generateSchema = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    return callGemini(
+        jsonContent,
+        apiKey,
+        preferredModel,
+        `You are a TypeScript expert. Generate a TypeScript interface for this JSON.
+      Rules:
+      1. Output ONLY the TypeScript code. No markdown fences.
+      2. Use 'Root' as the main interface name.
+      3. Use nice indentation.`
+    );
+};
+
+export const explainJson = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    return callGemini(
+        jsonContent,
+        apiKey,
+        preferredModel,
+        `Explain this JSON data in simple terms.
+      Rules:
+      1. Be concise. High-level summary of what this data represents.
+      2. Mention key fields if important.
+      3. No markdown formatting, just plain text or simple bullet points.`
+    );
+};
+
+// Helper to reuse the fetch logic
+const callGemini = async (content: string, apiKey: string, preferredModel: string, systemPrompt: string): Promise<string> => {
+    let modelName = preferredModel;
+
+    if (!modelName || modelName === 'auto') {
+        modelName = await getBestModel(apiKey);
+    }
+
+    const cleanModelName = modelName.startsWith('models/') ? modelName : `models/${modelName}`;
+    const PROMPT = `${systemPrompt}\n\nJSON:\n${content}`;
+
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/${cleanModelName}:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: PROMPT }] }] }),
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment.');
+            }
+            throw new Error(error.error?.message || 'Failed to contact Gemini');
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error('No response from AI');
+
+        return text.replace(/```typescript\n?|```json\n?|```/g, '').trim();
+    } catch (error) {
+        console.error('AI Error:', error);
+        throw error;
+    }
+};
+
 /**
  * Dynamically finds the best available model for the given API key.
  * Prioritizes: Gemini 1.5 Flash -> Gemini 1.5 Pro -> Gemini 1.0 Pro.

@@ -1,0 +1,102 @@
+.container {
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--spacing-4);
+    background-color: var(--bg-surface);
+    color: var(--text-main);
+    font-family: 'Fira Code', 'Monaco', monospace;
+    /* Monospace fits trees best */
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+}
+
+.node {
+    /* Container for a block */
+}
+
+.line {
+    display: flex;
+    align-items: center;
+    white-space: pre;
+}
+
+.clickable {
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.clickable:hover {
+    background-color: var(--bg-hover);
+}
+
+.toggleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.toggleBtn:hover {
+    color: var(--text-main);
+}
+
+.key {
+    color: var(--syntax-property);
+    margin-right: 4px;
+}
+
+.value {
+    /* Colors handled inline for specificity based on type */
+}
+
+.bracket,
+.punct {
+    color: var(--text-muted);
+}
+
+.collapsed {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 12px;
+    margin: 0 4px;
+}
+
+.children {
+    display: flex;
+    flex-direction: column;
+}
+
+.nodeIcon {
+    vertical-align: middle;
+    margin-right: 4px;
+    opacity: 0.7;
+}
+
+.copyableKey {
+    cursor: copy;
+    transition: color 0.2s;
+}
+
+.copyableKey:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-style: dotted;
+}
+
+.copied {
+    color: var(--color-success) !important;
+}

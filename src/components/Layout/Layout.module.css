@@ -33,8 +33,16 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
+    background-color: transparent;
+    /* Cleaner look without background box */
+}
+
+.toolGroup {
+    display: flex;
+    align-items: center;
+    gap: 2px;
     background-color: var(--bg-surface);
-    padding: 4px;
+    padding: 2px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
 }
@@ -58,14 +66,70 @@
 }
 
 .toolButton:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
+}
+
+.fixBtn {
+    background-color: rgba(var(--color-primary-rgb), 0.1);
+    color: var(--color-primary);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+    font-weight: 600;
+}
+
+.fixBtn:hover:not(:disabled) {
+    background-color: rgba(var(--color-primary-rgb), 0.2);
 }
 
 .main {
     flex: 1;
     overflow: hidden;
     position: relative;
+    display: flex;
+    /* For split view */
+}
+
+.pane {
+    height: 100%;
+    overflow: hidden;
+}
+
+.full {
+    width: 100%;
+}
+
+.half {
+    width: 50%;
+    border-right: 1px solid var(--border-subtle);
+}
+
+.treePane {
+    background-color: var(--bg-surface);
+}
+
+.editorContainer {
+    height: 100%;
+}
+
+.divider {
+    width: 1px;
+    height: 16px;
+    background-color: var(--border-subtle);
+    margin: 0 var(--spacing-2);
+}
+
+.viewToggles {
+    display: flex;
+    gap: 2px;
+    background: var(--bg-surface);
+    padding: 2px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
+.active {
+    background-color: var(--bg-hover) !important;
+    color: var(--text-main) !important;
 }
 
 .footer {
@@ -101,4 +165,27 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+.dragOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--bg-app-rgb), 0.85);
+    /* Requires RGB var or just opacity */
+    background-color: rgba(0, 0, 0, 0.7);
+    /* Fallback */
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    /* Let drops pass through if needed, but here overlay handles visual info */
 }

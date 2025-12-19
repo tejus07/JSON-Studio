@@ -1,14 +1,19 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { safeParseJSON, formatJSON, minifyJSON } from '../utils/jsonUtils';
-import { fixJsonWithGemini } from '../services/aiService';
+import { fixJsonWithGemini, generateSchema, explainJson } from '../services/aiService';
 
 interface JsonState {
     rawText: string;
     parsedData: any;
     error: string | null;
     isValid: boolean;
+
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
+
+    viewMode: 'code' | 'tree' | 'split';
+    setViewMode: (mode: 'code' | 'tree' | 'split') => void;
 
     apiKey: string;
     setApiKey: (key: string) => void;
@@ -19,83 +24,151 @@ interface JsonState {
     isAiModalOpen: boolean;
     setAiModalOpen: (open: boolean) => void;
 
+    isInfoModalOpen: boolean;
+    setInfoModalOpen: (open: boolean) => void;
+
     isFixing: boolean;
     fixJsonWithAI: () => Promise<void>;
+
+    isGenerating: boolean;
+    generatedContent: { title: string; content: string } | null;
+    setGeneratedContent: (content: { title: string; content: string } | null) => void;
+
+    generateSchemaWithAI: () => Promise<void>;
+    explainJsonWithAI: () => Promise<void>;
 
     setText: (text: string) => void;
     format: () => void;
     minify: () => void;
+    clear: () => void;
 }
 
-export const useJsonStore = create<JsonState>((set, get) => ({
-    rawText: '',
-    parsedData: null,
-    error: null,
-    isValid: true,
-    theme: 'dark', // Default to dark for "Studio" feel, or 'system'
+export const useJsonStore = create<JsonState>()(
+    persist(
+        (set, get) => ({
+            rawText: '',
+            parsedData: null,
+            error: null,
+            isValid: true,
+            theme: 'dark',
 
-    apiKey: localStorage.getItem('json-studio-api-key') || '',
-    preferredModel: localStorage.getItem('json-studio-model') || 'auto',
-    isAiModalOpen: false,
+            apiKey: '',
+            preferredModel: 'auto',
+            isAiModalOpen: false,
+            isInfoModalOpen: false,
 
-    setTheme: (theme: 'light' | 'dark') => {
-        set({ theme });
-        document.documentElement.setAttribute('data-theme', theme);
-    },
+            // View state
+            viewMode: 'split',
 
-    setApiKey: (key: string) => {
-        set({ apiKey: key });
-        localStorage.setItem('json-studio-api-key', key);
-    },
+            isGenerating: false,
+            generatedContent: null,
+            setGeneratedContent: (content) => set({ generatedContent: content }),
 
-    setPreferredModel: (model: string) => {
-        set({ preferredModel: model });
-        localStorage.setItem('json-studio-model', model);
-    },
+            setTheme: (theme) => {
+                set({ theme });
+                document.documentElement.setAttribute('data-theme', theme);
+            },
 
-    setAiModalOpen: (open: boolean) => set({ isAiModalOpen: open }),
+            setViewMode: (mode) => set({ viewMode: mode }),
 
-    isFixing: false,
-    fixJsonWithAI: async () => {
-        const { apiKey, rawText, preferredModel } = get();
-        if (!apiKey) {
-            set({ isAiModalOpen: true });
-            return;
+            setApiKey: (key) => set({ apiKey: key }),
+
+            setPreferredModel: (model) => set({ preferredModel: model }),
+
+            setAiModalOpen: (open) => set({ isAiModalOpen: open }),
+            setInfoModalOpen: (open) => set({ isInfoModalOpen: open }),
+
+            isFixing: false,
+            fixJsonWithAI: async () => {
+                const { apiKey, rawText, preferredModel } = get();
+                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+
+                set({ isFixing: true });
+                try {
+                    const fixed = await fixJsonWithGemini(rawText, apiKey, preferredModel);
+                    get().setText(fixed);
+                } catch (e: any) {
+                    alert(e.message || 'Failed to fix JSON');
+                } finally {
+                    set({ isFixing: false });
+                }
+            },
+
+            generateSchemaWithAI: async () => {
+                const { apiKey, rawText, preferredModel } = get();
+                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+
+                set({ isGenerating: true });
+                try {
+                    const schema = await generateSchema(rawText, apiKey, preferredModel);
+                    set({ generatedContent: { title: 'TypeScript Schema', content: schema } });
+                } catch (e: any) {
+                    alert(e.message || 'Failed to generate schema');
+                } finally {
+                    set({ isGenerating: false });
+                }
+            },
+
+            explainJsonWithAI: async () => {
+                const { apiKey, rawText, preferredModel } = get();
+                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+
+                set({ isGenerating: true });
+                try {
+                    const explanation = await explainJson(rawText, apiKey, preferredModel);
+                    set({ generatedContent: { title: 'Explanation', content: explanation } });
+                } catch (e: any) {
+                    alert(e.message || 'Failed to explain JSON');
+                } finally {
+                    set({ isGenerating: false });
+                }
+            },
+
+            setText: (text) => {
+                const { data, error } = safeParseJSON(text);
+                set({
+                    rawText: text,
+                    parsedData: data,
+                    error: error ? error.message : null,
+                    isValid: !error
+                });
+            },
+
+            format: () => {
+                const { rawText } = get();
+                const formatted = formatJSON(rawText);
+                get().setText(formatted);
+            },
+
+            minify: () => {
+                const { rawText } = get();
+                const minified = minifyJSON(rawText);
+                get().setText(minified);
+            },
+
+            clear: () => {
+                get().setText('');
+            }
+        }),
+        {
+            name: 'json-studio-storage',
+            partialize: (state) => ({
+                theme: state.theme,
+                apiKey: state.apiKey,
+                preferredModel: state.preferredModel,
+                rawText: state.rawText, // Auto-save content
+                viewMode: state.viewMode
+            }),
+            onRehydrateStorage: () => (state) => {
+                // Restore theme attribute when rehydrated
+                if (state?.theme) {
+                    document.documentElement.setAttribute('data-theme', state.theme);
+                }
+                // Re-parse the loaded text to ensure state is consistent
+                if (state?.rawText) {
+                    state.setText(state.rawText);
+                }
+            }
         }
-
-        set({ isFixing: true });
-        try {
-            const fixed = await fixJsonWithGemini(rawText, apiKey, preferredModel);
-            get().setText(fixed);
-        } catch (e: any) {
-            alert(e.message || 'Failed to fix JSON');
-        } finally {
-            set({ isFixing: false });
-        }
-    },
-
-    setText: (text: string) => {
-        // Basic state update
-        // We defer heavy parsing or debounce it in a real app, 
-        // but for now we parse on every keystroke to check validity.
-        const { data, error } = safeParseJSON(text);
-        set({
-            rawText: text,
-            parsedData: data,
-            error: error ? error.message : null,
-            isValid: !error
-        });
-    },
-
-    format: () => {
-        const { rawText } = get();
-        const formatted = formatJSON(rawText);
-        get().setText(formatted);
-    },
-
-    minify: () => {
-        const { rawText } = get();
-        const minified = minifyJSON(rawText);
-        get().setText(minified);
-    }
-}));
+    )
+);
