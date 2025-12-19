@@ -1,4 +1,4 @@
-import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, FileCode, MessageSquare, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon } from 'lucide-react';
+import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './Toolbar.module.css';
@@ -26,9 +26,12 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
         setViewMode,
         generateSchemaWithAI,
         explainJsonWithAI,
-        isGenerating,
+        isGeneratingSchema,
+        isGeneratingExplanation,
         setInfoModalOpen
     } = useJsonStore();
+
+    const isBusy = isFixing || isGeneratingSchema || isGeneratingExplanation;
 
     return (
         <header className={styles.header}>
@@ -69,29 +72,40 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                 </div>
 
                 {/* AI Group */}
-                {isValid && rawText && !isMobile && (
+                {rawText && (
                     <>
                         <div className={styles.divider} />
                         <div className={styles.toolGroup}>
-                            <button onClick={generateSchemaWithAI} className={styles.toolButton} title="Generate Schema" disabled={isGenerating}>
-                                <FileCode size={16} className={isGenerating ? styles.spin : ''} />
+                            <button
+                                className={`${styles.toolButton} ${styles.fixBtn}`}
+                                onClick={fixJsonWithAI}
+                                disabled={isBusy || isValid} // Disable if valid, or if any AI operation is busy
+                                title="Fix with AI"
+                            >
+                                {isFixing ? <Loader2 size={13} className={styles.spin} /> : <Wand2 size={13} />}
+                                {(!isMobile || (isMobile && !isBusy)) && <span className={styles.btnText}>Fix</span>}
+                            </button>
+
+                            <button
+                                className={styles.toolButton}
+                                onClick={generateSchemaWithAI}
+                                disabled={isBusy || !isValid}
+                                title="Generate Schema"
+                            >
+                                {isGeneratingSchema ? <Loader2 size={15} className={styles.spin} /> : <FileJson size={15} />}
                                 <span className={styles.btnText}>Schema</span>
                             </button>
-                            <button onClick={explainJsonWithAI} className={styles.toolButton} title="Explain Data" disabled={isGenerating}>
-                                <MessageSquare size={16} className={isGenerating ? styles.spin : ''} />
+
+                            <button
+                                className={styles.toolButton}
+                                onClick={explainJsonWithAI}
+                                disabled={isBusy || !isValid}
+                                title="Explain JSON"
+                            >
+                                {isGeneratingExplanation ? <Loader2 size={15} className={styles.spin} /> : <MessageSquareText size={15} />}
                                 <span className={styles.btnText}>Explain</span>
                             </button>
                         </div>
-                    </>
-                )}
-
-                {!isValid && rawText && (
-                    <>
-                        <div className={styles.divider} />
-                        <button onClick={fixJsonWithAI} className={`${styles.toolButton} ${styles.fixBtn}`} title="Auto-Fix JSON" disabled={isFixing || isGenerating}>
-                            <Wand2 size={16} className={isFixing ? styles.spin : ''} />
-                            <span>{isFixing ? 'Fixing...' : 'Fix'}</span>
-                        </button>
                     </>
                 )}
 

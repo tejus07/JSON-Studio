@@ -31,9 +31,10 @@ interface JsonState {
     isFixing: boolean;
     fixJsonWithAI: () => Promise<void>;
 
-    isGenerating: boolean;
-    generatedContent: { title: string; content: string } | null;
-    setGeneratedContent: (content: { title: string; content: string } | null) => void;
+    isGeneratingSchema: boolean;
+    isGeneratingExplanation: boolean;
+    generatedContent: { title: string; content: string; type: 'markdown' | 'code' } | null;
+    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' } | null) => void;
 
     generateSchemaWithAI: () => Promise<void>;
     explainJsonWithAI: () => Promise<void>;
@@ -61,7 +62,8 @@ export const useJsonStore = create<JsonState>()(
             // View state
             viewMode: 'split',
 
-            isGenerating: false,
+            isGeneratingSchema: false,
+            isGeneratingExplanation: false,
             generatedContent: null,
             setGeneratedContent: (content) => set({ generatedContent: content }),
 
@@ -101,16 +103,16 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel } = get();
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
-                set({ isGenerating: true });
+                set({ isGeneratingSchema: true });
                 try {
                     const schema = await generateSchema(rawText, apiKey, preferredModel);
-                    set({ generatedContent: { title: 'TypeScript Schema', content: schema } });
+                    set({ generatedContent: { title: 'TypeScript Schema', content: schema, type: 'code' } });
                     toast.success('Schema generated');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'Failed to generate schema';
                     toast.error(msg);
                 } finally {
-                    set({ isGenerating: false });
+                    set({ isGeneratingSchema: false });
                 }
             },
 
@@ -118,16 +120,16 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel } = get();
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
-                set({ isGenerating: true });
+                set({ isGeneratingExplanation: true });
                 try {
                     const explanation = await explainJson(rawText, apiKey, preferredModel);
-                    set({ generatedContent: { title: 'Explanation', content: explanation } });
+                    set({ generatedContent: { title: 'Explanation', content: explanation, type: 'markdown' } });
                     toast.success('Explanation generated');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'Failed to explain JSON';
                     toast.error(msg);
                 } finally {
-                    set({ isGenerating: false });
+                    set({ isGeneratingExplanation: false });
                 }
             },
 

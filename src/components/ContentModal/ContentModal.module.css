@@ -36,6 +36,16 @@
     background-color: var(--bg-surface);
 }
 
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.icon {
+    color: var(--color-primary);
+}
+
 .title {
     font-size: 16px;
     font-weight: 600;
@@ -74,17 +84,53 @@
     position: relative;
 }
 
-.pre {
-    margin: 0;
-    padding: var(--spacing-4);
+/* Markdown Styles */
+.markdownWrapper {
+    padding: var(--spacing-6);
     height: 100%;
-    overflow: auto;
-    font-family: var(--font-mono);
-    font-size: 13px;
+    overflow-y: auto;
+    font-family: var(--font-sans);
     color: var(--text-main);
-    line-height: 1.5;
-    white-space: pre-wrap;
-    /* or pre depending on preference */
+    line-height: 1.6;
+}
+
+.markdownWrapper h1,
+.markdownWrapper h2,
+.markdownWrapper h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+}
+
+.markdownWrapper p {
+    margin-bottom: 1em;
+}
+
+.markdownWrapper ul,
+.markdownWrapper ol {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+}
+
+.markdownWrapper code {
+    background-color: var(--bg-surface);
+    padding: 0.2em 0.4em;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+}
+
+.markdownWrapper pre {
+    background-color: var(--bg-surface);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.markdownWrapper pre code {
+    background-color: transparent;
+    padding: 0;
 }
 
 @keyframes fadeIn {
