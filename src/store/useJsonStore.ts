@@ -39,16 +39,23 @@ interface JsonState {
     setPromptModalOpen: (open: boolean, action?: PromptAction) => void;
     executeAiPrompt: (input: string) => Promise<void>;
 
-    isFixing: boolean;
-    fixJsonWithAI: () => Promise<void>;
+    // Unified Processing State
+    processingStatus: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null;
+    setProcessingStatus: (status: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null) => void;
 
+    // Actions
+    fixJsonWithAI: () => Promise<void>;
+    generateSchemaWithAI: () => Promise<void>;
+    explainJsonWithAI: () => Promise<void>;
+
+    // Compatibility / Deprecated
+    isFixing: boolean;
     isGeneratingSchema: boolean;
     isGeneratingExplanation: boolean;
     generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null;
     setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null) => void;
 
-    generateSchemaWithAI: () => Promise<void>;
-    explainJsonWithAI: () => Promise<void>;
+    // ... (rest of the store)
 
     setText: (text: string) => void;
     format: () => void;
@@ -76,8 +83,23 @@ export const useJsonStore = create<JsonState>()(
             viewMode: 'split',
             splitRatio: 50,
 
-            isGeneratingSchema: false,
+            // Loading State
+            processingStatus: null,
+            setProcessingStatus: (status) => set({ processingStatus: status }),
+
+            // Deprecated booleans (mapped for compatibility if needed, but we should switch)
+            // For now, let's keep the getters compatible if components use them, but purely rely on processingStatus internally? 
+            // Actually, let's just remove them from the interface or map them derived if possible. 
+            // To be safe and fast, I will just remove the explicit boolean flags from state actions and use processingStatus.
+            // But wait, existing components (Toolbar) use isFixing etc. 
+            // I'll map them in the component consumption step or keep them as derived?
+            // Zustand doesn't do derived state easily without selectors.
+            // I'll update the interface to remove them and fix usage.
+
+            isGeneratingSchema: false, // Keeping for now to avoid breaking Toolbar immediately, will replace usage
             isGeneratingExplanation: false,
+            isFixing: false,
+
             generatedContent: null,
             setGeneratedContent: (content) => set({ generatedContent: content }),
 
@@ -101,26 +123,32 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel, promptAction } = get();
                 if (!apiKey || !promptAction) return;
 
-                set({ isPromptModalOpen: false, isGeneratingSchema: true }); // Reuse spinner or add specific one. Reuse for simplicity.
+                // Map action to status
+                const statusMap: Record<string, 'generate' | 'query' | 'convert'> = {
+                    generate: 'generate',
+                    query: 'query',
+                    convert: 'convert'
+                };
+
+                set({ isPromptModalOpen: false, processingStatus: statusMap[promptAction] || null });
 
                 try {
                     let result = '';
                     let title = '';
-                    let type: 'code' | 'markdown' | 'fix-preview' = 'code'; // Default to code view
+                    let type: 'code' | 'markdown' | 'fix-preview' = 'code';
                     let actionLabel = 'Apply Fix';
 
                     if (promptAction === 'generate') {
                         result = await generateMockData(input, apiKey, preferredModel);
                         title = 'Generated Data';
-                        type = 'fix-preview'; // Use fix-preview so users can "Apply" it to editor
+                        type = 'fix-preview';
                         actionLabel = 'Use Data';
                     } else if (promptAction === 'query') {
                         result = await nlQuery(rawText, input, apiKey, preferredModel);
                         title = 'Query Result';
-                        type = 'code'; // Just view, copy manually? Or fix-preview? Let's use code view for now, usually you don't overwrite source with query result.
+                        type = 'code';
                     } else if (promptAction === 'convert') {
                         result = await smartConvert(rawText, input, apiKey, preferredModel);
-                        // Clean up title: "Convert to CSV" -> "CSV Conversion"
                         const format = input.replace(/convert to/i, '').trim();
                         title = `${format} Conversion`;
                         type = 'code';
@@ -132,26 +160,24 @@ export const useJsonStore = create<JsonState>()(
                     const msg = e instanceof Error ? e.message : 'AI Action Failed';
                     toast.error(msg);
                 } finally {
-                    set({ isGeneratingSchema: false });
+                    set({ processingStatus: null });
                 }
             },
 
-            isFixing: false,
             fixJsonWithAI: async () => {
                 const { apiKey, rawText, preferredModel } = get();
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
-                set({ isFixing: true });
+                set({ isFixing: true, processingStatus: 'fixing' });
                 try {
                     const { fixed, explanation } = await fixJsonWithGemini(rawText, apiKey, preferredModel);
-                    // Preview fit first
                     set({ generatedContent: { title: 'Review Fix', content: fixed, type: 'fix-preview', explanation } });
                     toast.success('Fix ready for review');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'Failed to fix JSON';
                     toast.error(msg);
                 } finally {
-                    set({ isFixing: false });
+                    set({ isFixing: false, processingStatus: null });
                 }
             },
 
@@ -159,7 +185,7 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel } = get();
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
-                set({ isGeneratingSchema: true });
+                set({ isGeneratingSchema: true, processingStatus: 'schema' });
                 try {
                     const schema = await generateSchema(rawText, apiKey, preferredModel);
                     set({ generatedContent: { title: 'TypeScript Schema', content: schema, type: 'code' } });
@@ -168,7 +194,7 @@ export const useJsonStore = create<JsonState>()(
                     const msg = e instanceof Error ? e.message : 'Failed to generate schema';
                     toast.error(msg);
                 } finally {
-                    set({ isGeneratingSchema: false });
+                    set({ isGeneratingSchema: false, processingStatus: null });
                 }
             },
 
@@ -176,7 +202,7 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel } = get();
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
-                set({ isGeneratingExplanation: true });
+                set({ isGeneratingExplanation: true, processingStatus: 'explain' });
                 try {
                     const explanation = await explainJson(rawText, apiKey, preferredModel);
                     set({ generatedContent: { title: 'Explanation', content: explanation, type: 'markdown' } });
@@ -185,7 +211,7 @@ export const useJsonStore = create<JsonState>()(
                     const msg = e instanceof Error ? e.message : 'Failed to explain JSON';
                     toast.error(msg);
                 } finally {
-                    set({ isGeneratingExplanation: false });
+                    set({ isGeneratingExplanation: false, processingStatus: null });
                 }
             },
 
