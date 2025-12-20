@@ -4,7 +4,7 @@
 
 JSON Studio is a powerful, privacy-focused JSON editor built for developers. It combines a robust code editor with AI-powered features to help you fix, generate, and understand your data instantly.
 
-![JSON Studio Screenshot](https://via.placeholder.com/1200x630/0f172a/38bdf8?text=JSON+Studio)
+![JSON Studio Screenshot](./public/website-preview.png)
 
 ## ✨ Features
 
