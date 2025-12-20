@@ -1,11 +1,8 @@
-import { X, Copy, Check, Sparkles, FileCode, Wand2, Info } from 'lucide-react'; // Added icons
-import { useState } from 'react';
+import { X, Copy, Check, Sparkles, FileCode, Wand2, Info, Table as TableIcon } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { toast } from 'sonner';
-import Markdown from 'react-markdown'; // Changed from 'react-markdown' to 'Markdown' for default export usage or standard named import if simpler. Usually `import Markdown from 'react-markdown'`
-// For CodeMirror
-// Used internal Editor component for code view 
-// Let's use the existing Editor component in read-only mode to save size!
+import Markdown from 'react-markdown';
 import { Editor } from '../Editor/Editor';
 
 import styles from './ContentModal.module.css';
@@ -13,6 +10,26 @@ import styles from './ContentModal.module.css';
 export function ContentModal() {
     const { generatedContent, setGeneratedContent, setText, theme } = useJsonStore();
     const [copied, setCopied] = useState(false);
+    const [viewMode, setViewMode] = useState<'code' | 'table'>('code');
+
+    // Parse JSON for Table View
+    const tableData = useMemo(() => {
+        if (!generatedContent || generatedContent.type !== 'code' && generatedContent.type !== 'fix-preview') return null;
+        try {
+            const data = JSON.parse(generatedContent.content);
+            if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+                return data;
+            }
+        } catch (e) {
+            return null;
+        }
+        return null; // Not tabular
+    }, [generatedContent]);
+
+    // Auto-switch to table if valid
+    useMemo(() => {
+        if (tableData) setViewMode('table');
+    }, [tableData]);
 
     if (!generatedContent) return null;
 
@@ -37,7 +54,26 @@ export function ContentModal() {
                                 <Sparkles size={18} className={styles.icon} />
                         }
                         <h2 className={styles.title}>{generatedContent.title}</h2>
+                        <h2 className={styles.title}>{generatedContent.title}</h2>
                     </div>
+
+                    {tableData && (
+                        <div className={styles.viewToggle}>
+                            <button
+                                className={`${styles.toggleBtn} ${viewMode === 'table' ? styles.activeToggle : ''}`}
+                                onClick={() => setViewMode('table')}
+                            >
+                                <TableIcon size={14} /> Table
+                            </button>
+                            <button
+                                className={`${styles.toggleBtn} ${viewMode === 'code' ? styles.activeToggle : ''}`}
+                                onClick={() => setViewMode('code')}
+                            >
+                                <FileCode size={14} /> Code
+                            </button>
+                        </div>
+                    )}
+
                     <div className={styles.actions}>
                         {generatedContent.type === 'fix-preview' ? (
                             <>
@@ -93,14 +129,34 @@ export function ContentModal() {
                             <Markdown>{generatedContent.content}</Markdown>
                         </div>
                     ) : (
-                        <Editor
-                            initialValue={generatedContent.content}
-                            onChange={() => { }}
-                            theme={theme}
-                        // We need to implement readOnly in Editor or just accept it might be editable but ignored.
-                        // Ideally pass readOnly prop if Editor supports it, or just use it as viewer.
-                        // Let's assume standard Editor for now, will refine if editable. 
-                        />
+                        viewMode === 'table' && tableData ? (
+                            <div className={styles.tableWrapper}>
+                                <table className={styles.dataTable}>
+                                    <thead>
+                                        <tr>
+                                            {Object.keys(tableData[0]).map(key => <th key={key}>{key}</th>)}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tableData.map((row: any, i: number) => (
+                                            <tr key={i}>
+                                                {Object.values(row).map((val: any, j) => (
+                                                    <td key={j}>{
+                                                        typeof val === 'object' ? JSON.stringify(val) : String(val)
+                                                    }</td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : (
+                            <Editor
+                                initialValue={generatedContent.content}
+                                onChange={() => { }}
+                                theme={theme}
+                            />
+                        )
                     )}
                 </div>
             </div>

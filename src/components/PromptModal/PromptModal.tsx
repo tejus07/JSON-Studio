@@ -4,9 +4,26 @@ import { X, Sparkles, Search, RefreshCw } from 'lucide-react';
 import styles from './PromptModal.module.css';
 
 export function PromptModal() {
-    const { isPromptModalOpen, promptAction, setPromptModalOpen, executeAiPrompt } = useJsonStore();
+    const { isPromptModalOpen, promptAction, setPromptModalOpen, executeAiPrompt, parsedData } = useJsonStore();
     const [input, setInput] = useState('');
     const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    // Context Keys Helper
+    const getContextKeys = () => {
+        if (!parsedData) return [];
+        if (Array.isArray(parsedData)) {
+            if (parsedData.length > 0 && typeof parsedData[0] === 'object' && parsedData[0] !== null) {
+                return Object.keys(parsedData[0]);
+            }
+            return []; // Array of primitives, no keys to show
+        }
+        if (typeof parsedData === 'object' && parsedData !== null) {
+            return Object.keys(parsedData);
+        }
+        return [];
+    };
+
+    const contextKeys = getContextKeys();
 
     useEffect(() => {
         if (isPromptModalOpen) {
@@ -77,6 +94,22 @@ export function PromptModal() {
                     <div className={styles.hint}>
                         Pro tip: Press Cmd+Enter to submit
                     </div>
+                    {config.title === 'Natural Language Query' && contextKeys.length > 0 && (
+                        <div className={styles.contextHint}>
+                            <span className={styles.contextLabel}>Click to add:</span>
+                            <div className={styles.keyTags}>
+                                {contextKeys.slice(0, 50).map(key => (
+                                    <button
+                                        key={key}
+                                        className={styles.keyTag}
+                                        onClick={() => setInput(prev => prev + (prev.endsWith(' ') ? '' : ' ') + key)}
+                                    >
+                                        {key}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.footer}>

@@ -132,6 +132,82 @@
     line-height: 1.6;
 }
 
+/* View Toggles */
+.viewToggle {
+    display: flex;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    margin-right: auto;
+    margin-left: 16px;
+}
+
+.toggleBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.toggleBtn:hover {
+    color: var(--text-main);
+}
+
+.activeToggle {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Table View */
+.tableWrapper {
+    height: 100%;
+    overflow: auto;
+    font-family: var(--font-sans);
+    font-size: 13px;
+}
+
+.dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.dataTable th {
+    background-color: var(--bg-surface);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px var(--spacing-4);
+    border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+}
+
+.dataTable td {
+    padding: 10px var(--spacing-4);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dataTable tr:hover td {
+    background-color: var(--bg-hover);
+}
+
 .markdownWrapper h1,
 .markdownWrapper h2,
 .markdownWrapper h3 {
