@@ -35,12 +35,20 @@ export function JsonTree() {
         );
     }
 
+    // Determine default expansion depth based on size
+    // < 10k: depth 3
+    // < 50k: depth 2
+    // > 50k: depth 0 (strictly virtualized)
+    const size = rawText.length;
+    const initialDepth = size < 10000 ? 3 : size < 50000 ? 1 : 0;
+
     return (
         <div className={styles.container}>
             <JsonNode
                 name=""
                 value={parsedData}
                 isLast={true}
+                defaultExpandedDepth={initialDepth}
             />
         </div>
     );

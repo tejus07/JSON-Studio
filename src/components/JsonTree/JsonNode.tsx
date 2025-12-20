@@ -9,10 +9,11 @@ interface JsonNodeProps {
     isLast: boolean;
     depth?: number;
     path?: string;
+    defaultExpandedDepth?: number;
 }
 
-export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }: JsonNodeProps) {
-    const [expanded, setExpanded] = useState(depth === 0);
+export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', defaultExpandedDepth = 0 }: JsonNodeProps) {
+    const [expanded, setExpanded] = useState(depth <= defaultExpandedDepth);
     const [justCopied, setJustCopied] = useState(false);
     const [visibleCount, setVisibleCount] = useState(50); // Pagination limit
 
@@ -168,6 +169,7 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
                             // But simplifying: let's just show comma if index !== keys.length - 1
                             depth={depth + 1}
                             path={isArray ? `${path}[${index}]` : `${path ? path : ''}["${key}"]`}
+                            defaultExpandedDepth={defaultExpandedDepth}
                         />
                     ))}
                     {hasMore && (
