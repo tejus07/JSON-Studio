@@ -154,8 +154,11 @@ export function Layout() {
     // Auto-paste handler for Empty State
     useEffect(() => {
         const handlePaste = (e: ClipboardEvent) => {
-            // Only capture if empty and not typing in an input (like the modal)
-            if (!rawText && e.clipboardData && (e.target === document.body || e.target === document.documentElement)) {
+            // Only capture if empty and not typing in an input
+            const target = e.target as HTMLElement;
+            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            if (!rawText && e.clipboardData && !isInput) {
                 const text = e.clipboardData.getData('text');
                 if (text) {
                     setText(text);

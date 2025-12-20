@@ -121,7 +121,15 @@ export const useJsonStore = create<JsonState>()(
 
             executeAiPrompt: async (input: string) => {
                 const { apiKey, rawText, preferredModel, promptAction } = get();
-                if (!apiKey || !promptAction) return;
+
+                // Handle missing API key
+                if (!apiKey) {
+                    set({ isPromptModalOpen: false, isAiModalOpen: true });
+                    toast.error('Please configure your API Key first');
+                    return;
+                }
+
+                if (!promptAction) return;
 
                 // Map action to status
                 const statusMap: Record<string, 'generate' | 'query' | 'convert'> = {
