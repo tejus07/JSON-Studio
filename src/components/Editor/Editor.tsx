@@ -6,6 +6,7 @@ import { bracketMatching, foldGutter, foldKeymap, indentOnInput, syntaxHighlight
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { searchKeymap, search } from '@codemirror/search';
 import styles from './Editor.module.css';
 
 interface EditorProps {
@@ -42,6 +43,7 @@ export function Editor({ initialValue = '', theme = 'dark', onChange }: EditorPr
                 rectangularSelection(),
                 crosshairCursor(),
                 highlightActiveLine(),
+                search({ top: true }), // Show search panel at top
 
                 json(),
                 themeCompartment.current.of(onUpdateTheme(theme)), // Initial theme setup
@@ -49,6 +51,7 @@ export function Editor({ initialValue = '', theme = 'dark', onChange }: EditorPr
                 keymap.of([
                     ...closeBracketsKeymap,
                     ...defaultKeymap,
+                    ...searchKeymap,
                     ...historyKeymap,
                     ...foldKeymap,
                 ]),

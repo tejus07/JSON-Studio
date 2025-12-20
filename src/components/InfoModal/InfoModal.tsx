@@ -61,6 +61,10 @@ export function InfoModal() {
                             </div>
                             <ul className={styles.shortcutList}>
                                 <li>
+                                    <span>Find & Replace</span>
+                                    <kbd>Cmd + F</kbd>
+                                </li>
+                                <li>
                                     <span>Command Palette</span>
                                     <kbd>Cmd + K</kbd>
                                 </li>
