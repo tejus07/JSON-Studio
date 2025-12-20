@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { safeParseJSON, formatJSON, minifyJSON } from '../utils/jsonUtils';
 import { fixJsonWithGemini, generateSchema, explainJson, generateMockData, nlQuery, smartConvert } from '../services/aiService';
+import { indexedDBStorage } from '../utils/indexedDBStorage';
 
 type PromptAction = 'generate' | 'query' | 'convert' | null;
 
@@ -283,6 +284,7 @@ export const useJsonStore = create<JsonState>()(
         }),
         {
             name: 'json-studio-storage',
+            storage: createJSONStorage(() => indexedDBStorage),
             partialize: (state) => ({
                 theme: state.theme,
                 apiKey: state.apiKey,
