@@ -189,7 +189,11 @@ export const useJsonStore = create<JsonState>()(
                 const { apiKey, rawText, preferredModel } = get();
                 const textToFix = currentTextOverride || rawText; // Support iterative fixing
 
-                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+                if (!apiKey) {
+                    set({ isAiModalOpen: true });
+                    toast.error('Please configure your API Key first');
+                    return;
+                }
 
                 set({ isFixing: true, processingStatus: 'fixing' });
                 try {
@@ -224,7 +228,11 @@ export const useJsonStore = create<JsonState>()(
 
             generateSchemaWithAI: async () => {
                 const { apiKey, rawText, preferredModel } = get();
-                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+                if (!apiKey) {
+                    set({ isAiModalOpen: true });
+                    toast.error('Please configure your API Key first');
+                    return;
+                }
 
                 set({ isGeneratingSchema: true, processingStatus: 'schema' });
                 try {
@@ -241,7 +249,11 @@ export const useJsonStore = create<JsonState>()(
 
             explainJsonWithAI: async () => {
                 const { apiKey, rawText, preferredModel } = get();
-                if (!apiKey) { set({ isAiModalOpen: true }); return; }
+                if (!apiKey) {
+                    set({ isAiModalOpen: true });
+                    toast.error('Please configure your API Key first');
+                    return;
+                }
 
                 set({ isGeneratingExplanation: true, processingStatus: 'explain' });
                 try {
