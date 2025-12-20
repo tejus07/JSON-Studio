@@ -106,35 +106,36 @@
     color: var(--text-muted);
 }
 
-.clearBtn {
+.paneActions {
+    display: flex;
+    gap: 4px;
+}
+
+.iconBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
     color: var(--text-muted);
-    font-size: 12px;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
-.clearBtn:hover {
-    color: var(--color-danger);
+.iconBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--border-subtle);
 }
 
-.textarea {
+.editorContainer {
     flex: 1;
-    width: 100%;
-    resize: none;
-    background: var(--bg-surface);
+    overflow: hidden;
     border: 1px solid var(--border-subtle);
     border-radius: 8px;
-    padding: 16px;
-    color: var(--text-main);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    outline: none;
-}
-
-.textarea:focus {
-    border-color: var(--color-primary);
+    background: var(--bg-panel);
 }
 
 .actionColumn {

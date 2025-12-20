@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
-import { X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { X, ArrowRight, ArrowLeft, Upload, Copy, Trash2 } from 'lucide-react';
 import { DiffEditor } from '../DiffEditor/DiffEditor';
+import { Editor } from '../Editor/Editor';
 import { useJsonStore } from '../../store/useJsonStore';
+import { toast } from 'sonner';
 import styles from './DiffView.module.css';
 
 interface DiffViewProps {
@@ -10,12 +12,29 @@ interface DiffViewProps {
 
 export function DiffView({ onClose }: DiffViewProps) {
     const [step, setStep] = useState<'input' | 'result'>('input');
-    const { diffLeft, diffRight, setDiffLeft, setDiffRight } = useJsonStore();
+    const { diffLeft, diffRight, setDiffLeft, setDiffRight, theme } = useJsonStore();
+
+    const leftFileRef = useRef<HTMLInputElement>(null);
+    const rightFileRef = useRef<HTMLInputElement>(null);
 
     // Reset step on mount
     useEffect(() => {
         setStep('input');
     }, []);
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, side: 'left' | 'right') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const content = event.target?.result as string;
+            if (side === 'left') setDiffLeft(content);
+            else setDiffRight(content);
+            toast.success(`Loaded ${file.name}`);
+        };
+        reader.readAsText(file);
+    };
 
     // Close on Escape key
     useEffect(() => {
@@ -50,17 +69,29 @@ export function DiffView({ onClose }: DiffViewProps) {
             <div className={styles.content}>
                 {step === 'input' ? (
                     <div className={styles.inputStage}>
+                        <input type="file" ref={leftFileRef} onChange={(e) => handleFileUpload(e, 'left')} hidden accept=".json" />
+                        <input type="file" ref={rightFileRef} onChange={(e) => handleFileUpload(e, 'right')} hidden accept=".json" />
+
                         <div className={styles.inputPane}>
                             <div className={styles.paneHeader}>
-                                <span>Original JSON</span>
-                                <button onClick={() => setDiffLeft('')} className={styles.clearBtn}>Clear</button>
+                                <div className={styles.paneTitle}>
+                                    <span>Original JSON</span>
+                                </div>
+                                <div className={styles.paneActions}>
+                                    <button onClick={() => leftFileRef.current?.click()} className={styles.iconBtn} title="Upload File">
+                                        <Upload size={14} />
+                                    </button>
+                                    <button onClick={() => navigator.clipboard.writeText(diffLeft)} className={styles.iconBtn} title="Copy">
+                                        <Copy size={14} />
+                                    </button>
+                                    <button onClick={() => setDiffLeft('')} className={styles.iconBtn} title="Clear">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
                             </div>
-                            <textarea
-                                className={styles.textarea}
-                                value={diffLeft}
-                                onChange={(e) => setDiffLeft(e.target.value)}
-                                placeholder="Paste original JSON here..."
-                            />
+                            <div className={styles.editorContainer}>
+                                <Editor initialValue={diffLeft} onChange={setDiffLeft} theme={theme} />
+                            </div>
                         </div>
 
                         <div className={styles.actionColumn}>
@@ -76,15 +107,24 @@ export function DiffView({ onClose }: DiffViewProps) {
 
                         <div className={styles.inputPane}>
                             <div className={styles.paneHeader}>
-                                <span>Modified JSON</span>
-                                <button onClick={() => setDiffRight('')} className={styles.clearBtn}>Clear</button>
+                                <div className={styles.paneTitle}>
+                                    <span>Modified JSON</span>
+                                </div>
+                                <div className={styles.paneActions}>
+                                    <button onClick={() => rightFileRef.current?.click()} className={styles.iconBtn} title="Upload File">
+                                        <Upload size={14} />
+                                    </button>
+                                    <button onClick={() => navigator.clipboard.writeText(diffRight)} className={styles.iconBtn} title="Copy">
+                                        <Copy size={14} />
+                                    </button>
+                                    <button onClick={() => setDiffRight('')} className={styles.iconBtn} title="Clear">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
                             </div>
-                            <textarea
-                                className={styles.textarea}
-                                value={diffRight}
-                                onChange={(e) => setDiffRight(e.target.value)}
-                                placeholder="Paste modified JSON here..."
-                            />
+                            <div className={styles.editorContainer}>
+                                <Editor initialValue={diffRight} onChange={setDiffRight} theme={theme} />
+                            </div>
                         </div>
                     </div>
                 ) : (
