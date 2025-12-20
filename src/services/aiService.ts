@@ -8,7 +8,10 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
 
     console.log('Using Gemini Model:', modelName);
 
-    const PROMPT = `You are a JSON repair tool. Fix this invalid JSON and explain what was wrong.
+    const isLargeFile = jsonContent.length > 50000;
+
+    // Default strategy: Full rewrite (works for small files)
+    let PROMPT = `You are a JSON repair tool. Fix this invalid JSON and explain what was wrong.
     Rules:
     1. Output strictly a JSON object with this structure:
        {
@@ -22,17 +25,54 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
     Invalid JSON:
     ${jsonContent}`;
 
+    // Large File Strategy: Snippet Fixing
+    let snippetContext = null;
+    if (isLargeFile) {
+        try {
+            JSON.parse(jsonContent);
+            return { fixed: jsonContent, explanation: 'Valid JSON' };
+        } catch (e: any) {
+            // Find error position
+            const errorMsg = e.message;
+            let errorIndex = -1;
+
+            // Try to extract position from "at position N" or "line X column Y"
+            const matchPos = errorMsg.match(/position (\d+)/);
+            if (matchPos) {
+                errorIndex = parseInt(matchPos[1], 10);
+            } else {
+                // Very basic fallback if we can't find index: just take last 20k chars
+                // This is weak, but better than failing. Ideally we use a better parser logic.
+                errorIndex = jsonContent.length - 1;
+            }
+
+            if (errorIndex !== -1) {
+                const start = Math.max(0, errorIndex - 2000); // 2000 chars before
+                const end = Math.min(jsonContent.length, errorIndex + 2000); // 2000 chars after
+                const snippet = jsonContent.slice(start, end);
+                snippetContext = { start, end, original: snippet };
+
+                PROMPT = `You are a JSON repair tool. I have a syntax error in a large file around specific characters.
+                Fix the snippet below.
+                
+                Error Context: "${errorMsg}"
+                
+                Rules:
+                1. Output strictly a JSON object:
+                   {
+                     "fixedSnippet": "THE FIXED STRING SEGMENT ONLY",
+                     "explanation": "What you fixed"
+                   }
+                2. The "fixedSnippet" must replace the invalid part of the input snippet perfectly so it fits back into the file.
+                3. Do NOT wrap output in markdown.
+
+                Invalid Snippet:
+                ${snippet}`;
+            }
+        }
+    }
+
     try {
-        // modelName usually comes as "models/gemini-..." from the list endpoint
-        // If it doesn't have "models/" prefix, we might need to check.
-        // The list endpoint returns "models/gemini-1.5-flash-001".
-        // The generate URL is .../models/MODEL_NAME:generateContent
-        // If modelName is "models/foo", url becomes .../models/models/foo... WRONG.
-        // We need to ensure we don't double up or the URL is constructed correctly.
-
-        // Correct URL Pattern: https://generativelanguage.googleapis.com/v1beta/{model=models/*}:generateContent
-        // So if we have "models/gemini...", we put that in the path.
-
         const cleanModelName = modelName.startsWith('models/') ? modelName : `models/${modelName}`;
 
         const response = await fetch(
@@ -69,15 +109,25 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
 
         // Parse the result
         const result = JSON.parse(cleanText);
+
+        if (isLargeFile && snippetContext && result.fixedSnippet) {
+            const fixedString = jsonContent.slice(0, snippetContext.start) + result.fixedSnippet + jsonContent.slice(snippetContext.end);
+            return {
+                fixed: fixedString,
+                explanation: result.explanation || 'Fixed error in snippet'
+            };
+        }
+
         let fixedString = typeof result.fixed === 'string' ? result.fixed : JSON.stringify(result.fixed);
 
         // Ensure it is pretty-printed for readability in the modal
-        try {
-            const parsedObj = JSON.parse(fixedString);
-            fixedString = JSON.stringify(parsedObj, null, 2);
-        } catch (e) {
-            // If formatting fails (e.g. AI returned partial JSON), use original
-            console.warn('Failed to format fixed JSON:', e);
+        if (!isLargeFile) {
+            try {
+                const parsedObj = JSON.parse(fixedString);
+                fixedString = JSON.stringify(parsedObj, null, 2);
+            } catch (e) {
+                console.warn('Failed to format fixed JSON:', e);
+            }
         }
 
         return {
@@ -92,9 +142,33 @@ export const fixJsonWithGemini = async (jsonContent: string, apiKey: string, pre
     }
 };
 
+// Helper to sample heavy JSON to avoid token limits
+const sampleJson = (jsonContent: string): string => {
+    if (jsonContent.length < 50000) return jsonContent; // Use full if small
+
+    try {
+        const parsed = JSON.parse(jsonContent);
+        if (Array.isArray(parsed)) {
+            if (parsed.length <= 50) return jsonContent;
+            // Take first 20 and last 20
+            const sample = [...parsed.slice(0, 20), ...parsed.slice(-20)];
+            return JSON.stringify(sample, null, 2);
+        }
+        // If it's a huge object, we might just take keys? 
+        // For simplicity in Phase 1, if it's an object, we just return the first 50KB string representation 
+        // trying to close it validly? No, simpler to just truncate or return keys if possible.
+        // Actually, for Schema/Convert, array sampling is the most critical use case.
+        return jsonContent.slice(0, 50000) + '\n... (truncated)';
+    } catch (e) {
+        // If invalid, we can't parse to sample smartly. Return raw slice.
+        return jsonContent.slice(0, 30000) + '\n... (truncated)';
+    }
+};
+
 export const generateSchema = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    const sampled = sampleJson(jsonContent);
     return callGemini(
-        jsonContent,
+        sampled,
         apiKey,
         preferredModel,
         `You are a TypeScript expert. Generate a TypeScript interface for this JSON.
@@ -106,8 +180,9 @@ export const generateSchema = async (jsonContent: string, apiKey: string, prefer
 };
 
 export const explainJson = async (jsonContent: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    const sampled = sampleJson(jsonContent);
     return callGemini(
-        jsonContent,
+        sampled,
         apiKey,
         preferredModel,
         `Explain this JSON data in simple terms.
@@ -123,6 +198,7 @@ export const generateMockData = async (prompt: string, apiKey: string, preferred
     // We treat the prompt as the "JSON" argument in the helper, but the helper adds "JSON: ..." which is weird.
     // Let's create a specific helper or just call fetch directly. Reusing logic is better.
     // We will pass empty string as content and put everything in system prompt.
+    // This function doesn't need sampling as prompt is small.
 
     return callGemini(
         '',
@@ -137,6 +213,14 @@ export const generateMockData = async (prompt: string, apiKey: string, preferred
 };
 
 export const nlQuery = async (jsonContent: string, query: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    // Querying requires full data to find specific results (e.g. "Find Alice").
+    // Sampling wouldn't work for "Find Alice" if Alice is in the middle.
+    // However, we CANNOT send 1MB. 
+    // For Phase 1, we will just warn/fail or slice.
+    // Let's try to send as much as possible up to limit (approx 1M tokens input is fine for Flash).
+    // The LIMIT is output. If the result is small (filtering), it works!
+    // If result is huge, it fails.
+    // We'll send full content here as Flash handles input well.
     return callGemini(
         jsonContent,
         apiKey,
@@ -151,8 +235,9 @@ export const nlQuery = async (jsonContent: string, query: string, apiKey: string
 };
 
 export const smartConvert = async (jsonContent: string, format: string, apiKey: string, preferredModel: string = 'auto'): Promise<string> => {
+    const sampled = sampleJson(jsonContent);
     return callGemini(
-        jsonContent,
+        sampled,
         apiKey,
         preferredModel,
         `Convert the following JSON to ${format}.
