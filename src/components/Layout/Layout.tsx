@@ -15,7 +15,7 @@ import { MobileNav } from '../MobileNav/MobileNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { EmptyState } from '../EmptyState/EmptyState';
-import { DiffModal } from '../DiffModal/DiffModal';
+import { DiffView } from '../DiffView/DiffView';
 import styles from './Layout.module.css';
 
 export function Layout() {
@@ -224,47 +224,54 @@ export function Layout() {
                 </div>
             )}
 
-            <Toolbar
-                onUpload={handleUploadClick}
-                onDownload={handleDownload}
-                onCopy={handleCopyInput}
-                onClear={handleClear}
-                isMobile={isMobile}
-            />
+            {isDiffView ? (
+                <main className={styles.main}>
+                    <DiffView onClose={() => setDiffView(false)} />
+                </main>
+            ) : (
+                <>
+                    <Toolbar
+                        onUpload={handleUploadClick}
+                        onDownload={handleDownload}
+                        onCopy={handleCopyInput}
+                        onClear={handleClear}
+                        isMobile={isMobile}
+                    />
 
-            <main className={styles.main} ref={mainRef}>
-                <DiffModal isOpen={isDiffView} onClose={() => setDiffView(false)} />
-                {!rawText ? (
-                    <EmptyState />
-                ) : (
-                    <>
-                        {(!isMobile || viewMode === 'code') && (
-                            <div
-                                className={`${styles.pane} ${viewMode === 'split' ? styles.splitLeft : styles.full}`}
-                                style={viewMode === 'split' && !isMobile ? { width: `${splitRatio}%` } : undefined}
-                            >
-                                <Editor initialValue={rawText} onChange={setText} theme={theme} />
-                            </div>
-                        )}
+                    <main className={styles.main} ref={mainRef}>
+                        {!rawText ? (
+                            <EmptyState />
+                        ) : (
+                            <>
+                                {(!isMobile || viewMode === 'code') && (
+                                    <div
+                                        className={`${styles.pane} ${viewMode === 'split' ? styles.splitLeft : styles.full}`}
+                                        style={viewMode === 'split' && !isMobile ? { width: `${splitRatio}%` } : undefined}
+                                    >
+                                        <Editor initialValue={rawText} onChange={setText} theme={theme} />
+                                    </div>
+                                )}
 
-                        {!isMobile && viewMode === 'split' && (
-                            <div
-                                className={styles.resizer}
-                                onMouseDown={handleResizeStart}
-                            />
-                        )}
+                                {!isMobile && viewMode === 'split' && (
+                                    <div
+                                        className={styles.resizer}
+                                        onMouseDown={handleResizeStart}
+                                    />
+                                )}
 
-                        {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
-                            <div
-                                className={`${styles.pane} ${viewMode === 'split' ? styles.splitRight : styles.full} ${styles.treePane}`}
-                                style={viewMode === 'split' && !isMobile ? { width: `${100 - splitRatio}%` } : undefined}
-                            >
-                                <JsonTree />
-                            </div>
+                                {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
+                                    <div
+                                        className={`${styles.pane} ${viewMode === 'split' ? styles.splitRight : styles.full} ${styles.treePane}`}
+                                        style={viewMode === 'split' && !isMobile ? { width: `${100 - splitRatio}%` } : undefined}
+                                    >
+                                        <JsonTree />
+                                    </div>
+                                )}
+                            </>
                         )}
-                    </>
-                )}
-            </main>
+                    </main>
+                </>
+            )}
 
             <footer className={`${styles.footer} ${isValid ? styles.valid : styles.invalid} `}>
                 <div className={styles.status}>
