@@ -139,3 +139,25 @@
 .copied {
     color: var(--color-success) !important;
 }
+
+.showMore {
+    margin: 2px 0;
+}
+
+.showMoreBtn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-style: italic;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.showMoreBtn:hover {
+    color: var(--color-primary);
+    background-color: var(--bg-hover);
+    text-decoration: underline;
+}

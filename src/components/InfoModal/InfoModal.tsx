@@ -1,9 +1,9 @@
-import { X, Shield, Cpu, Zap, Share2 } from 'lucide-react';
+import { X, Shield, Cpu, Zap, Share2, MessageSquare } from 'lucide-react';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './InfoModal.module.css';
 
 export function InfoModal() {
-    const { isInfoModalOpen, setInfoModalOpen } = useJsonStore();
+    const { isInfoModalOpen, setInfoModalOpen, setFeedbackModalOpen } = useJsonStore();
 
     if (!isInfoModalOpen) return null;
 
@@ -86,10 +86,21 @@ export function InfoModal() {
                     </div>
 
                     <div className={styles.footer}>
-                        <p>Designed for focus and speed.</p>
-                        <a href="https://github.com/tejus07/JSON-Studio" target="_blank" rel="noopener noreferrer" className={styles.link}>
-                            View on GitHub <Share2 size={12} />
-                        </a>
+                        <button
+                            className={styles.feedbackBtn}
+                            onClick={() => {
+                                setInfoModalOpen(false);
+                                setFeedbackModalOpen(true);
+                            }}
+                        >
+                            <MessageSquare size={14} /> Give Feedback
+                        </button>
+                        <div className={styles.footerLinks}>
+                            <p>Designed for focus and speed.</p>
+                            <a href="https://github.com/tejus07/JSON-Studio" target="_blank" rel="noopener noreferrer" className={styles.link}>
+                                View on GitHub <Share2 size={12} />
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

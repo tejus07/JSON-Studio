@@ -222,6 +222,32 @@
     color: var(--text-muted);
 }
 
+.footerLinks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.feedbackBtn {
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: opacity 0.2s;
+}
+
+.feedbackBtn:hover {
+    opacity: 0.9;
+}
+
 .footer p {
     margin: 0;
 }
