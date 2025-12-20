@@ -114,6 +114,21 @@ export function ContentModal() {
                                     <Check size={16} style={{ marginRight: 4 }} />
                                     {generatedContent.actionLabel || 'Apply Fix'}
                                 </button>
+
+                                {generatedContent.isPartial && (
+                                    <button
+                                        className={`${styles.actionBtn} ${styles.primaryBtn} ${styles.fixAgainBtn}`}
+                                        onClick={() => {
+                                            // Trigger fix again with current content
+                                            useJsonStore.getState().fixJsonWithAI(generatedContent.content);
+                                        }}
+                                        title="Fix Next Error"
+                                        style={{ backgroundColor: 'var(--color-warning)', color: 'black' }}
+                                    >
+                                        <Wand2 size={16} style={{ marginRight: 4 }} />
+                                        Fix Next Error
+                                    </button>
+                                )}
                                 <button
                                     className={styles.actionBtn}
                                     onClick={handleClose}

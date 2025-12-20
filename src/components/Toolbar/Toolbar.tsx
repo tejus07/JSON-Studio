@@ -69,13 +69,17 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                 {/* Edit Group */}
                 <div className={styles.toolGroup}>
                     {!isValid && rawText && !isMobile && (
-                        <>
-                            <button onClick={fixJsonWithAI} className={`${styles.toolButton} ${styles.fixBtn}`} title="Auto-Fix JSON">
-                                <Wand2 size={14} />
-                                <span>Fix</span>
+                        <div className={styles.toolGroup}>
+                            <button
+                                onClick={() => fixJsonWithAI()}
+                                className={`${styles.toolButton} ${styles.fixBtn}`}
+                                title="Auto-Fix JSON"
+                            >
+                                <Wand2 size={16} />
+                                {!isMobile && "Fix JSON"}
                             </button>
                             <div className={styles.divider} />
-                        </>
+                        </div>
                     )}
 
                     <button onClick={onCopy} className={styles.toolButton} title="Copy All" disabled={!rawText}>

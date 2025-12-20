@@ -51,7 +51,7 @@ interface JsonState {
     setProcessingStatus: (status: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null) => void;
 
     // Actions
-    fixJsonWithAI: () => Promise<void>;
+    fixJsonWithAI: (currentTextOverride?: string) => Promise<void>;
     generateSchemaWithAI: () => Promise<void>;
     explainJsonWithAI: () => Promise<void>;
 
@@ -59,8 +59,8 @@ interface JsonState {
     isFixing: boolean;
     isGeneratingSchema: boolean;
     isGeneratingExplanation: boolean;
-    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null;
-    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null) => void;
+    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string; isPartial?: boolean } | null;
+    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string; isPartial?: boolean } | null) => void;
 
     // ... (rest of the store)
 
@@ -184,15 +184,35 @@ export const useJsonStore = create<JsonState>()(
                 }
             },
 
-            fixJsonWithAI: async () => {
+            fixJsonWithAI: async (currentTextOverride?: string) => {
                 const { apiKey, rawText, preferredModel } = get();
+                const textToFix = currentTextOverride || rawText; // Support iterative fixing
+
                 if (!apiKey) { set({ isAiModalOpen: true }); return; }
 
                 set({ isFixing: true, processingStatus: 'fixing' });
                 try {
-                    const { fixed, explanation } = await fixJsonWithGemini(rawText, apiKey, preferredModel);
-                    set({ generatedContent: { title: 'Review Fix', content: fixed, type: 'fix-preview', explanation } });
-                    toast.success('Fix ready for review');
+                    const { fixed, explanation } = await fixJsonWithGemini(textToFix, apiKey, preferredModel);
+
+                    // Check if the result is actually valid now
+                    const { error } = safeParseJSON(fixed);
+                    const isFullyFixed = !error;
+
+                    set({
+                        generatedContent: {
+                            title: isFullyFixed ? 'Review Fix' : 'Partial Fix (More Errors Detected)',
+                            content: fixed,
+                            type: 'fix-preview',
+                            explanation: isFullyFixed ? explanation : `${explanation}. Click 'Fix Next' to continue.`,
+                            isPartial: !isFullyFixed
+                        }
+                    });
+
+                    if (isFullyFixed) {
+                        toast.success('Fix ready for review');
+                    } else {
+                        toast.warning('Fixed one error, but more remain');
+                    }
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'Failed to fix JSON';
                     toast.error(msg);
