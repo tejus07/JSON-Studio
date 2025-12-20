@@ -1,4 +1,4 @@
-import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Code, FolderTree, HelpCircle, Settings, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Code, FolderTree, HelpCircle, Settings, Loader2, MessageSquareText, Sparkles, GitCompare } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
@@ -28,7 +28,9 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
         isGeneratingSchema,
         isGeneratingExplanation,
         setInfoModalOpen,
-        setPromptModalOpen
+        setPromptModalOpen,
+        isDiffView,
+        setDiffView
     } = useJsonStore();
 
     const [isAiMenuOpen, setAiMenuOpen] = useState(false);
@@ -174,6 +176,15 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                             >
                                 <FolderTree size={16} />
                                 <span className={styles.desktopLabel}>Tree</span>
+                            </button>
+                            <div className={styles.divider} />
+                            <button
+                                className={`${styles.toolButton} ${isDiffView ? styles.active : ''}`}
+                                onClick={() => setDiffView(!isDiffView)}
+                                title="Compare JSON"
+                            >
+                                <GitCompare size={16} />
+                                <span className={styles.desktopLabel}>Diff</span>
                             </button>
                         </div>
                     </>

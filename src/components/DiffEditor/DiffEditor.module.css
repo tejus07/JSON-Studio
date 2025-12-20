@@ -1,0 +1,41 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: var(--bg-app);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.paneTitle {
+    width: 50%;
+    text-align: center;
+}
+
+.editorWrapper {
+    flex: 1;
+    overflow: hidden;
+    /* MergeView needs absolute positioning or specific height sometimes */
+    position: relative;
+    /* Ensure styles apply to CM merge view */
+}
+
+/* Override some CM merge styles for dark mode compat if needed */
+:global(.cm-mergeView) {
+    height: 100%;
+}
+
+:global(.cm-mergeViewEditors) {
+    height: 100%;
+}

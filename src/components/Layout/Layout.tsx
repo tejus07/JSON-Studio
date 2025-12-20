@@ -15,6 +15,7 @@ import { MobileNav } from '../MobileNav/MobileNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { EmptyState } from '../EmptyState/EmptyState';
+import { DiffEditor } from '../DiffEditor/DiffEditor';
 import styles from './Layout.module.css';
 
 export function Layout() {
@@ -28,7 +29,8 @@ export function Layout() {
         setViewMode,
         theme,
         splitRatio,
-        setSplitRatio
+        setSplitRatio,
+        isDiffView
     } = useJsonStore();
 
     const isMobile = useIsMobile();
@@ -232,6 +234,10 @@ export function Layout() {
             <main className={styles.main} ref={mainRef}>
                 {!rawText ? (
                     <EmptyState />
+                ) : isDiffView ? (
+                    <div className={styles.full}>
+                        <DiffEditor />
+                    </div>
                 ) : (
                     <>
                         {(!isMobile || viewMode === 'code') && (

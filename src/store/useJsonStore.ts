@@ -51,6 +51,12 @@ interface JsonState {
     processingStatus: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null;
     setProcessingStatus: (status: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null) => void;
 
+    // Diff Mode State
+    isDiffView: boolean;
+    setDiffView: (open: boolean) => void;
+    secondaryText: string;
+    setSecondaryText: (text: string) => void;
+
     // Actions
     fixJsonWithAI: (currentTextOverride?: string) => Promise<void>;
     generateSchemaWithAI: () => Promise<void>;
@@ -95,6 +101,12 @@ export const useJsonStore = create<JsonState>()(
             // Loading State
             processingStatus: null,
             setProcessingStatus: (status) => set({ processingStatus: status }),
+
+            // Diff Mode
+            isDiffView: false,
+            secondaryText: '',
+            setDiffView: (open) => set({ isDiffView: open }),
+            setSecondaryText: (text) => set({ secondaryText: text }),
 
             // Deprecated booleans (mapped for compatibility if needed, but we should switch)
             // For now, let's keep the getters compatible if components use them, but purely rely on processingStatus internally? 
@@ -303,7 +315,9 @@ export const useJsonStore = create<JsonState>()(
                 preferredModel: state.preferredModel,
                 rawText: state.rawText, // Auto-save content
                 viewMode: state.viewMode,
-                splitRatio: state.splitRatio
+                splitRatio: state.splitRatio,
+                isDiffView: state.isDiffView,
+                secondaryText: state.secondaryText
             }),
             onRehydrateStorage: () => (state) => {
                 // Restore theme attribute when rehydrated
