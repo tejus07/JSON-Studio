@@ -87,6 +87,10 @@ export function SettingsModal() {
                         </div>
                         <p className={styles.hint}>
                             Your key is stored locally in your browser. We never see it.
+                            <br />
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className={styles.link}>
+                                Get your free API Key here &rarr;
+                            </a>
                         </p>
                     </div>
 
