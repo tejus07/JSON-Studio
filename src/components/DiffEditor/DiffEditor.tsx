@@ -8,13 +8,54 @@ import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
+import { ArrowRightLeft, ArrowLeft, Copy, Clipboard, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './DiffEditor.module.css';
 
 export function DiffEditor() {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<MergeView | null>(null);
-    const { rawText, secondaryText, setSecondaryText, theme } = useJsonStore();
+    const { rawText, secondaryText, setSecondaryText, theme, setText } = useJsonStore();
+
+    // Auto-fill right pane with left pane if empty on mount (Better Defaults)
+    useEffect(() => {
+        if (!secondaryText && rawText) {
+            setSecondaryText(rawText);
+            toast.info('Initialized Comparison View');
+        }
+    }, []);
+
+    const handleSwap = () => {
+        const temp = rawText;
+        setText(secondaryText);
+        setSecondaryText(temp);
+        toast.success('Swapped panes');
+    };
+
+    const handleApply = () => {
+        if (confirm('Overwrite original file with modified content?')) {
+            setText(secondaryText);
+            toast.success('Changes applied to main file');
+        }
+    };
+
+    const handlePasteRight = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                setSecondaryText(text);
+                toast.success('Pasted to Modified pane');
+            }
+        } catch (e) {
+            toast.error('Could not read clipboard');
+        }
+    };
+
+    const handleCopyLeft = () => {
+        setSecondaryText(rawText);
+        toast.success('Copied Original to Modified');
+    };
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -97,10 +138,36 @@ export function DiffEditor() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.header}>
-                <div className={styles.paneTitle}>Original (Read-only)</div>
-                <div className={styles.paneTitle}>Modified (Editable)</div>
+            <div className={styles.toolbar}>
+                <div className={styles.group}>
+                    <span className={styles.label}>Original</span>
+                    <button className={styles.btn} onClick={handleCopyLeft} title="Copy Original to Right">
+                        <Copy size={14} />
+                    </button>
+                </div>
+
+                <div className={styles.centerActions}>
+                    <button className={styles.actionBtn} onClick={handleSwap} title="Swap Left <-> Right">
+                        <ArrowRightLeft size={16} />
+                        <span>Swap</span>
+                    </button>
+                    <button className={`${styles.actionBtn} ${styles.primary}`} onClick={handleApply} title="Apply changes to Main File">
+                        <ArrowLeft size={16} />
+                        <span>Apply Change</span>
+                    </button>
+                </div>
+
+                <div className={styles.group}>
+                    <button className={styles.btn} onClick={handlePasteRight} title="Paste from Clipboard">
+                        <Clipboard size={14} />
+                    </button>
+                    <button className={styles.btn} onClick={() => setSecondaryText('')} title="Clear">
+                        <Trash2 size={14} />
+                    </button>
+                    <span className={styles.label}>Modified</span>
+                </div>
             </div>
+
             <div className={styles.editorWrapper} ref={containerRef} />
         </div>
     );
