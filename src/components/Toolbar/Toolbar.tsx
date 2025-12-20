@@ -1,4 +1,4 @@
-import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Columns, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
@@ -70,6 +70,16 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
 
                 {/* Edit Group */}
                 <div className={styles.toolGroup}>
+                    {!isValid && rawText && !isMobile && (
+                        <>
+                            <button onClick={fixJsonWithAI} className={`${styles.toolButton} ${styles.fixBtn}`} title="Auto-Fix JSON">
+                                <Wand2 size={14} />
+                                <span>Fix</span>
+                            </button>
+                            <div className={styles.divider} />
+                        </>
+                    )}
+
                     <button onClick={onCopy} className={styles.toolButton} title="Copy All" disabled={!rawText}>
                         <Copy size={16} />
                     </button>
@@ -80,9 +90,11 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                     )}
                     <button onClick={() => { format(); toast.success('JSON Formatted'); }} className={styles.toolButton} title="Format / Prettify" disabled={!isValid || !rawText}>
                         <AlignLeft size={16} />
+                        <span className={styles.desktopLabel}>Format</span>
                     </button>
                     <button onClick={() => { minify(); toast.success('JSON Minified'); }} className={styles.toolButton} title="Minify / Compact" disabled={!isValid || !rawText}>
                         <Minimize size={16} />
+                        <span className={styles.desktopLabel}>Minify</span>
                     </button>
                 </div>
 
@@ -151,20 +163,15 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                                 title="Code Only"
                             >
                                 <Code size={16} />
+                                <span className={styles.desktopLabel}>Code</span>
                             </button>
                             <button
                                 className={`${styles.toolButton} ${viewMode === 'split' ? styles.active : ''}`}
                                 onClick={() => setViewMode('split')}
-                                title="Split View"
-                            >
-                                <Columns size={16} />
-                            </button>
-                            <button
-                                className={`${styles.toolButton} ${viewMode === 'tree' ? styles.active : ''}`}
-                                onClick={() => setViewMode('tree')}
-                                title="Tree Only"
+                                title="Tree View"
                             >
                                 <FolderTree size={16} />
+                                <span className={styles.desktopLabel}>Tree</span>
                             </button>
                         </div>
                     </>

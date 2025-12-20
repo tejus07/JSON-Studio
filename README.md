@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# JSON Studio ⚡️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**The Ultimate Client-Side JSON Editor.**
 
-Currently, two official plugins are available:
+JSON Studio is a powerful, privacy-focused JSON editor built for developers. It combines a robust code editor with AI-powered features to help you fix, generate, and understand your data instantly.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![JSON Studio Screenshot](https://via.placeholder.com/1200x630/0f172a/38bdf8?text=JSON+Studio)
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🧠 AI Command Center
+Use the power of LLMs (Gemini/OpenAI) directly in your editor:
+-   **Auto-Fix**: Instantly repair invalid JSON with a single click.
+-   **Generate Data**: Create realistic mock data from natural language descriptions.
+-   **Natural Language Query**: Filter and interpret data using plain English.
+-   **Smart Convert**: Transform JSON to CSV, YAML, or XML.
+-   **Explain & Schema**: Generate TypeScript interfaces or get a summary of your data structure.
 
-## Expanding the ESLint configuration
+### 🛠 Powerful Editor
+-   **Dual Views**: Switch between **Code** and **Tree** views.
+-   **Search & Replace**: Full regex support (`Cmd+F`).
+-   **Format & Minify**: Prettify or compact your JSON instantly.
+-   **Error visualization**: See exactly where your JSON is broken.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🚀 Productivity Pro
+-   **Global Shortcuts**:
+    -   `Cmd+K`: Open AI Command Palette.
+    -   `Cmd+Shift+F`: Quick Fix JSON.
+    -   `Cmd+S`: Save file.
+-   **Magic Paste**: Paste JSON anywhere on the empty screen to load it.
+-   **Drag & Drop**: Open files instantly.
+-   **Auto-Save**: You never lose your work.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🔒 100% Private
+-   **Client-Side Only**: Your JSON data never leaves your browser.
+-   **Bring Your Own Key**: Your API keys are stored in your browser's local storage and request directly to the AI providers. Zero middlemen.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🚀 Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Prerequisites
+-   Node.js (v18+)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/tejus07/json-studio.git
+    cd json-studio
+    ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+
+4.  Build for production:
+    ```bash
+    npm run build
+    ```
+
+## 💻 Tech Stack
+-   **Framework**: React 19 + Vite
+-   **Language**: TypeScript
+-   **Editor**: CodeMirror 6
+-   **Styling**: Vanilla CSS (Variables & Modules)
+-   **State**: Zustand
+-   **Icons**: Lucide React
+
+## 📄 License
+MIT

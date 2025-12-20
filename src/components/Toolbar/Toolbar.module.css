@@ -80,8 +80,24 @@
     }
 }
 
+@media (min-width: 900px) {
+    .desktopLabel {
+        display: inline;
+        font-size: 12px;
+        font-weight: 500;
+    }
+}
+
+@media (max-width: 899px) {
+    .desktopLabel {
+        display: none;
+    }
+}
+
 @media (max-width: 600px) {
-    .btnText {
+
+    .btnText,
+    .desktopLabel {
         display: none;
     }
 }
