@@ -77,7 +77,7 @@ export function LoadingOverlay() {
             <div className={styles.content}>
                 <div className={styles.spinner}></div>
                 <div className={styles.message}>{message}</div>
-                <div className={styles.subtext}>Please wait, AI is working on it</div>
+                <div className={styles.subtext}>This may take a few seconds</div>
             </div>
         </div>
     );
