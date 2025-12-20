@@ -8,9 +8,10 @@ import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
-import { ArrowRightLeft, ArrowLeft, Copy, Clipboard, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, ArrowLeft, Copy, Clipboard, Trash2, AlignLeft, ArrowDown, ArrowUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
+import { formatAndSortJSON } from '../../utils/jsonUtils';
 import styles from './DiffEditor.module.css';
 
 export function DiffEditor() {
@@ -55,6 +56,53 @@ export function DiffEditor() {
     const handleCopyLeft = () => {
         setSecondaryText(rawText);
         toast.success('Copied Original to Modified');
+    };
+
+    const handleSmartSort = () => {
+        const sortedLeft = formatAndSortJSON(rawText);
+        const sortedRight = formatAndSortJSON(secondaryText);
+
+        if (sortedLeft !== rawText || sortedRight !== secondaryText) {
+            setText(sortedLeft);
+            setSecondaryText(sortedRight);
+            toast.success('Keys sorted & formatted');
+        } else {
+            toast.info('Already sorted');
+        }
+    };
+
+    const scrollToChange = (direction: 'next' | 'prev') => {
+        if (!viewRef.current) return;
+
+        const view = viewRef.current;
+        const chunks = view.chunks; // Access chunks from MergeView
+        if (!chunks || chunks.length === 0) {
+            toast.info('No differences found');
+            return;
+        }
+
+        const currentPos = view.a.state.selection.main.head;
+        let targetChunk = null;
+
+        if (direction === 'next') {
+            targetChunk = chunks.find(c => c.fromA > currentPos);
+            if (!targetChunk) targetChunk = chunks[0]; // Wrap around
+        } else {
+            // Find last chunk that starts before current pos
+            targetChunk = [...chunks].reverse().find(c => c.fromA < currentPos);
+            if (!targetChunk) targetChunk = chunks[chunks.length - 1]; // Wrap around
+        }
+
+        if (targetChunk) {
+            view.a.dispatch({
+                effects: EditorView.scrollIntoView(targetChunk.fromA, { y: 'center' }),
+                selection: { anchor: targetChunk.fromA }
+            });
+            // Also scroll b
+            view.b.dispatch({
+                effects: EditorView.scrollIntoView(targetChunk.fromB, { y: 'center' }),
+            });
+        }
     };
 
     useEffect(() => {
@@ -147,6 +195,10 @@ export function DiffEditor() {
                 </div>
 
                 <div className={styles.centerActions}>
+                    <button className={styles.actionBtn} onClick={handleSmartSort} title="Sort Keys & Align (Ignore Order)">
+                        <AlignLeft size={16} />
+                        <span>Smart Sort</span>
+                    </button>
                     <button className={styles.actionBtn} onClick={handleSwap} title="Swap Left <-> Right">
                         <ArrowRightLeft size={16} />
                         <span>Swap</span>
@@ -158,6 +210,15 @@ export function DiffEditor() {
                 </div>
 
                 <div className={styles.group}>
+                    <div className={styles.navGroup}>
+                        <button className={styles.btn} onClick={() => scrollToChange('prev')} title="Previous Change">
+                            <ArrowUp size={14} />
+                        </button>
+                        <button className={styles.btn} onClick={() => scrollToChange('next')} title="Next Change">
+                            <ArrowDown size={14} />
+                        </button>
+                    </div>
+                    <div className={styles.divider} />
                     <button className={styles.btn} onClick={handlePasteRight} title="Paste from Clipboard">
                         <Clipboard size={14} />
                     </button>

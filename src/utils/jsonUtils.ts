@@ -32,3 +32,27 @@ export const minifyJSON = (jsonString: string): string => {
         return jsonString;
     }
 };
+
+const sortJsonKeys = (data: any): any => {
+    if (Array.isArray(data)) {
+        return data.map(sortJsonKeys);
+    } else if (typeof data === 'object' && data !== null) {
+        return Object.keys(data)
+            .sort()
+            .reduce((acc: any, key) => {
+                acc[key] = sortJsonKeys(data[key]);
+                return acc;
+            }, {});
+    }
+    return data;
+};
+
+export const formatAndSortJSON = (jsonString: string): string => {
+    try {
+        const obj = JSON.parse(jsonString);
+        const sorted = sortJsonKeys(obj);
+        return JSON.stringify(sorted, null, 2);
+    } catch (e) {
+        return jsonString;
+    }
+};
