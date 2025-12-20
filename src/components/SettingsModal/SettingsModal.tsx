@@ -117,7 +117,7 @@ export function SettingsModal() {
 
                     <div className={styles.info}>
                         <ShieldCheck size={16} className={styles.infoIcon} />
-                        <span>Enables "Fix JSON" and "Explain" features.</span>
+                        <span>Enables Fix, Generate, Query, Schema, and more.</span>
                     </div>
                 </div>
 

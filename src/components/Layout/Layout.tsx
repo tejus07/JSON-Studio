@@ -24,7 +24,9 @@ export function Layout() {
         clear,
         viewMode,
         setViewMode,
-        theme
+        theme,
+        splitRatio,
+        setSplitRatio
     } = useJsonStore();
 
     const isMobile = useIsMobile();
@@ -38,7 +40,54 @@ export function Layout() {
     }, [isMobile, viewMode, setViewMode]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
+    const [isDraggingFile, setIsDraggingFile] = useState(false);
+
+    // Split View Resizing
+    const [isResizing, setIsResizing] = useState(false);
+    const mainRef = useRef<HTMLElement>(null);
+
+    const handleResizeStart = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    };
+
+    useEffect(() => {
+        if (!isResizing) return;
+
+        const handleResizeMove = (e: MouseEvent) => {
+            if (mainRef.current) {
+                const rect = mainRef.current.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const totalWidth = rect.width;
+                let percentage = (x / totalWidth) * 100;
+
+                // Snap to 50% if within 48-52% range
+                if (percentage > 48 && percentage < 52) {
+                    percentage = 50;
+                }
+
+                // Clamp
+                percentage = Math.max(20, Math.min(80, percentage));
+                setSplitRatio(percentage);
+            }
+        };
+
+        const handleResizeEnd = () => {
+            setIsResizing(false);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+
+        document.addEventListener('mousemove', handleResizeMove);
+        document.addEventListener('mouseup', handleResizeEnd);
+
+        return () => {
+            document.removeEventListener('mousemove', handleResizeMove);
+            document.removeEventListener('mouseup', handleResizeEnd);
+        };
+    }, [isResizing, setSplitRatio]);
 
     const handleCopyInput = () => {
         navigator.clipboard.writeText(rawText);
@@ -86,17 +135,17 @@ export function Layout() {
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(true);
+        setIsDraggingFile(true);
     };
 
     const handleDragLeave = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(false);
+        setIsDraggingFile(false);
     };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(false);
+        setIsDraggingFile(false);
         const file = e.dataTransfer.files?.[0];
         if (file) readFile(file);
     };
@@ -146,7 +195,7 @@ export function Layout() {
                 accept=".json,application/json"
             />
 
-            {isDragging && (
+            {isDraggingFile && (
                 <div className={styles.dragOverlay}>
                     <Upload size={48} />
                     <p>Drop to Open JSON</p>
@@ -161,19 +210,32 @@ export function Layout() {
                 isMobile={isMobile}
             />
 
-            <main className={styles.main}>
+            <main className={styles.main} ref={mainRef}>
                 {!rawText ? (
                     <EmptyState />
                 ) : (
                     <>
                         {(!isMobile || viewMode === 'code') && (
-                            <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full}`}>
+                            <div
+                                className={`${styles.pane} ${viewMode === 'split' ? styles.splitLeft : styles.full}`}
+                                style={viewMode === 'split' && !isMobile ? { width: `${splitRatio}%` } : undefined}
+                            >
                                 <Editor initialValue={rawText} onChange={setText} theme={theme} />
                             </div>
                         )}
 
+                        {!isMobile && viewMode === 'split' && (
+                            <div
+                                className={styles.resizer}
+                                onMouseDown={handleResizeStart}
+                            />
+                        )}
+
                         {(!isMobile && viewMode === 'split' || viewMode === 'tree') && (
-                            <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full} ${styles.treePane}`}>
+                            <div
+                                className={`${styles.pane} ${viewMode === 'split' ? styles.splitRight : styles.full} ${styles.treePane}`}
+                                style={viewMode === 'split' && !isMobile ? { width: `${100 - splitRatio}%` } : undefined}
+                            >
                                 <JsonTree />
                             </div>
                         )}

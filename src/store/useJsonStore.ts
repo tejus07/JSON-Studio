@@ -18,6 +18,9 @@ interface JsonState {
     viewMode: 'code' | 'tree' | 'split';
     setViewMode: (mode: 'code' | 'tree' | 'split') => void;
 
+    splitRatio: number;
+    setSplitRatio: (ratio: number) => void;
+
     apiKey: string;
     setApiKey: (key: string) => void;
 
@@ -41,8 +44,8 @@ interface JsonState {
 
     isGeneratingSchema: boolean;
     isGeneratingExplanation: boolean;
-    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string } | null;
-    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string } | null) => void;
+    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string } | null;
+    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string } | null) => void;
 
     generateSchemaWithAI: () => Promise<void>;
     explainJsonWithAI: () => Promise<void>;
@@ -71,6 +74,7 @@ export const useJsonStore = create<JsonState>()(
 
             // View state
             viewMode: 'split',
+            splitRatio: 50,
 
             isGeneratingSchema: false,
             isGeneratingExplanation: false,
@@ -83,6 +87,7 @@ export const useJsonStore = create<JsonState>()(
             },
 
             setViewMode: (mode) => set({ viewMode: mode }),
+            setSplitRatio: (ratio) => set({ splitRatio: ratio }),
 
             setApiKey: (key) => set({ apiKey: key }),
 
@@ -102,11 +107,13 @@ export const useJsonStore = create<JsonState>()(
                     let result = '';
                     let title = '';
                     let type: 'code' | 'markdown' | 'fix-preview' = 'code'; // Default to code view
+                    let actionLabel = 'Apply Fix';
 
                     if (promptAction === 'generate') {
                         result = await generateMockData(input, apiKey, preferredModel);
                         title = 'Generated Data';
                         type = 'fix-preview'; // Use fix-preview so users can "Apply" it to editor
+                        actionLabel = 'Use Data';
                     } else if (promptAction === 'query') {
                         result = await nlQuery(rawText, input, apiKey, preferredModel);
                         title = 'Query Result';
@@ -122,7 +129,7 @@ export const useJsonStore = create<JsonState>()(
                         type = 'code';
                     }
 
-                    set({ generatedContent: { title, content: result, type } });
+                    set({ generatedContent: { title, content: result, type, actionLabel } });
                     toast.success('Action completed');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'AI Action Failed';
@@ -218,7 +225,8 @@ export const useJsonStore = create<JsonState>()(
                 apiKey: state.apiKey,
                 preferredModel: state.preferredModel,
                 rawText: state.rawText, // Auto-save content
-                viewMode: state.viewMode
+                viewMode: state.viewMode,
+                splitRatio: state.splitRatio
             }),
             onRehydrateStorage: () => (state) => {
                 // Restore theme attribute when rehydrated

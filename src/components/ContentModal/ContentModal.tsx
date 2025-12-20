@@ -11,7 +11,7 @@ import { Editor } from '../Editor/Editor';
 import styles from './ContentModal.module.css';
 
 export function ContentModal() {
-    const { generatedContent, setGeneratedContent, setText } = useJsonStore();
+    const { generatedContent, setGeneratedContent, setText, theme } = useJsonStore();
     const [copied, setCopied] = useState(false);
 
     if (!generatedContent) return null;
@@ -46,17 +46,17 @@ export function ContentModal() {
                                     onClick={() => {
                                         setText(generatedContent.content);
                                         setGeneratedContent(null);
-                                        toast.success('Fix applied successfully');
+                                        toast.success('Content applied successfully');
                                     }}
-                                    title="Accept Fix"
+                                    title="Accept"
                                 >
                                     <Check size={16} style={{ marginRight: 4 }} />
-                                    Apply Fix
+                                    {generatedContent.actionLabel || 'Apply Fix'}
                                 </button>
                                 <button
                                     className={styles.actionBtn}
                                     onClick={handleClose}
-                                    title="Reject Fix"
+                                    title="Reject"
                                 >
                                     <X size={18} />
                                 </button>
@@ -96,6 +96,7 @@ export function ContentModal() {
                         <Editor
                             initialValue={generatedContent.content}
                             onChange={() => { }}
+                            theme={theme}
                         // We need to implement readOnly in Editor or just accept it might be editable but ignored.
                         // Ideally pass readOnly prop if Editor supports it, or just use it as viewer.
                         // Let's assume standard Editor for now, will refine if editable. 
