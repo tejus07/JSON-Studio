@@ -1,4 +1,4 @@
-import { X, Copy, Check, Sparkles, FileCode, Wand2, Info, Table as TableIcon } from 'lucide-react';
+import { X, Copy, Check, Sparkles, FileCode, Wand2, Info, Table as TableIcon, ExternalLink } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { toast } from 'sonner';
@@ -40,6 +40,12 @@ export function ContentModal() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleOpenInNewTab = () => {
+        const blob = new Blob([generatedContent.content], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
     const handleClose = () => {
         setGeneratedContent(null);
     };
@@ -53,8 +59,14 @@ export function ContentModal() {
                             generatedContent.type === 'code' ? <FileCode size={18} className={styles.icon} /> :
                                 <Sparkles size={18} className={styles.icon} />
                         }
-                        <h2 className={styles.title}>{generatedContent.title}</h2>
-                        <h2 className={styles.title}>{generatedContent.title}</h2>
+                        <div className={styles.titleWrapper}>
+                            <h2 className={styles.title}>{generatedContent.title}</h2>
+                            {generatedContent.prompt && (
+                                <span className={styles.promptSubtitle} title={generatedContent.prompt}>
+                                    "{generatedContent.prompt}"
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     {tableData && (
@@ -105,6 +117,13 @@ export function ContentModal() {
                                     title="Copy to Clipboard"
                                 >
                                     {copied ? <Check size={18} /> : <Copy size={18} />}
+                                </button>
+                                <button
+                                    className={styles.actionBtn}
+                                    onClick={handleOpenInNewTab}
+                                    title="Open in New Tab"
+                                >
+                                    <ExternalLink size={18} />
                                 </button>
                                 <button
                                     className={styles.actionBtn}

@@ -110,6 +110,25 @@ export function PromptModal() {
                             </div>
                         </div>
                     )}
+
+                    {config.title === 'Smart Convert' && (
+                        <div className={styles.contextHint}>
+                            <span className={styles.contextLabel}>Quick Select:</span>
+                            <div className={styles.keyTags}>
+                                {['CSV', 'YAML', 'XML', 'TypeScript', 'Python Dict', 'Go Struct'].map(fmt => (
+                                    <button
+                                        key={fmt}
+                                        className={styles.keyTag}
+                                        onClick={() => {
+                                            setInput(`Convert to ${fmt}`);
+                                        }}
+                                    >
+                                        {fmt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.footer}>

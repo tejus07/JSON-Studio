@@ -44,8 +44,8 @@ interface JsonState {
 
     isGeneratingSchema: boolean;
     isGeneratingExplanation: boolean;
-    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string } | null;
-    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string } | null) => void;
+    generatedContent: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null;
+    setGeneratedContent: (content: { title: string; content: string; type: 'markdown' | 'code' | 'fix-preview'; explanation?: string; actionLabel?: string; prompt?: string } | null) => void;
 
     generateSchemaWithAI: () => Promise<void>;
     explainJsonWithAI: () => Promise<void>;
@@ -129,7 +129,7 @@ export const useJsonStore = create<JsonState>()(
                         type = 'code';
                     }
 
-                    set({ generatedContent: { title, content: result, type, actionLabel } });
+                    set({ generatedContent: { title, content: result, type, actionLabel, prompt: input } });
                     toast.success('Action completed');
                 } catch (e: unknown) {
                     const msg = e instanceof Error ? e.message : 'AI Action Failed';
