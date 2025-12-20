@@ -7,6 +7,13 @@ import { indexedDBStorage } from '../utils/indexedDBStorage';
 
 type PromptAction = 'generate' | 'query' | 'convert' | null;
 
+// Command Pattern for Toolbar -> Editor communication
+export interface ToolbarCommand {
+    type: string;
+    payload?: any;
+    id: number; // Unique ID to trigger effect
+}
+
 interface JsonState {
     rawText: string;
     parsedData: any;
@@ -58,6 +65,14 @@ interface JsonState {
     diffRight: string;
     setDiffLeft: (text: string) => void;
     setDiffRight: (text: string) => void;
+    // diffStep: 'input' | 'result';
+    // setDiffStep: (step: 'input' | 'result') => void;
+    diffStats: { changes: number };
+    setDiffStats: (stats: { changes: number }) => void;
+
+    // Command System
+    toolbarCommand: ToolbarCommand | null;
+    dispatchCommand: (type: string, payload?: any) => void;
 
     // Actions
     fixJsonWithAI: (currentTextOverride?: string) => Promise<void>;
@@ -108,6 +123,7 @@ export const useJsonStore = create<JsonState>()(
             isDiffView: false,
             diffLeft: '',
             diffRight: '',
+            // diffStep: 'input',
             setDiffView: (open) => {
                 set(state => {
                     // Initial sync when opening
@@ -119,6 +135,13 @@ export const useJsonStore = create<JsonState>()(
             },
             setDiffLeft: (text) => set({ diffLeft: text }),
             setDiffRight: (text) => set({ diffRight: text }),
+            // setDiffStep: (step) => set({ diffStep: step }),
+            diffStats: { changes: 0 },
+            setDiffStats: (stats) => set({ diffStats: stats }),
+
+            // Command System
+            toolbarCommand: null,
+            dispatchCommand: (type, payload) => set({ toolbarCommand: { type, payload, id: Date.now() } }),
 
             // Deprecated booleans (mapped for compatibility if needed, but we should switch)
             // For now, let's keep the getters compatible if components use them, but purely rely on processingStatus internally? 
@@ -330,7 +353,8 @@ export const useJsonStore = create<JsonState>()(
                 splitRatio: state.splitRatio,
                 isDiffView: state.isDiffView,
                 diffLeft: state.diffLeft,
-                diffRight: state.diffRight
+                diffRight: state.diffRight,
+                // diffStep: state.diffStep
             }),
             onRehydrateStorage: () => (state) => {
                 // Restore theme attribute when rehydrated

@@ -224,21 +224,20 @@ export function Layout() {
                 </div>
             )}
 
-            {isDiffView ? (
-                <main className={styles.main}>
-                    <DiffView onClose={() => setDiffView(false)} />
-                </main>
-            ) : (
-                <>
-                    <Toolbar
-                        onUpload={handleUploadClick}
-                        onDownload={handleDownload}
-                        onCopy={handleCopyInput}
-                        onClear={handleClear}
-                        isMobile={isMobile}
-                    />
+            {/* Unified Toolbar - Always Visible */}
+            <Toolbar
+                onUpload={handleUploadClick}
+                onDownload={handleDownload}
+                onCopy={handleCopyInput}
+                onClear={handleClear}
+                isMobile={isMobile}
+            />
 
-                    <main className={styles.main} ref={mainRef}>
+            <main className={styles.main} ref={mainRef}>
+                {isDiffView ? (
+                    <DiffView onClose={() => setDiffView(false)} />
+                ) : (
+                    <>
                         {!rawText ? (
                             <EmptyState />
                         ) : (
@@ -269,9 +268,9 @@ export function Layout() {
                                 )}
                             </>
                         )}
-                    </main>
-                </>
-            )}
+                    </>
+                )}
+            </main>
 
             <footer className={`${styles.footer} ${isValid ? styles.valid : styles.invalid} `}>
                 <div className={styles.status}>

@@ -34,7 +34,22 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-2);
-    background-color: transparent;
+    /* background-color: transparent; */
+    flex: 1;
+    justify-content: space-between;
+    /* Push left and right sections apart */
+}
+
+.leftSection {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
 }
 
 .toolbar::-webkit-scrollbar {
@@ -240,6 +255,14 @@
     margin: 0 2px;
 }
 
+.separator {
+    width: 1px;
+    height: 16px;
+    background-color: var(--border-subtle);
+    margin: 0 12px;
+    /* Distinct visual separation */
+}
+
 .viewToggles {
     display: flex;
     gap: 2px;
@@ -254,10 +277,7 @@
     color: var(--text-main) !important;
 }
 
-.actions {
-    display: flex;
-    align-items: center;
-}
+
 
 .spin {
     animation: spin 1s linear infinite;
@@ -273,6 +293,17 @@
     }
 }
 
+.betaBadge {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-left: 4px;
+    display: inline-block;
+}
+
 @media (max-width: 600px) {
     .header {
         padding: 0 var(--spacing-2);
@@ -286,7 +317,7 @@
 
     .toolbar {
         flex: 1;
-        justify-content: center;
+        justify-content: space-between;
         padding: 0 8px;
     }
 }

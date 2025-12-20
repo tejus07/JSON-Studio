@@ -38,3 +38,17 @@
     height: 24px;
     background-color: var(--border-subtle);
 }
+
+.betaBadge {
+    position: absolute;
+    top: 4px;
+    right: 25%;
+    /* Adjust based on icon/text width */
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    padding: 1px 3px;
+    border-radius: 4px;
+    pointer-events: none;
+}

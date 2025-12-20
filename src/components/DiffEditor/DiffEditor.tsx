@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MergeView } from '@codemirror/merge';
 import { EditorState } from '@codemirror/state';
 import { EditorView, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view';
@@ -8,7 +8,6 @@ import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { search } from '@codemirror/search';
-import { ArrowRightLeft, ArrowLeft, Copy, Clipboard, Trash2, AlignLeft, ArrowDown, ArrowUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
 import { formatAndSortJSON } from '../../utils/jsonUtils';
@@ -23,13 +22,24 @@ export function DiffEditor() {
         setDiffLeft,
         setDiffRight,
         theme,
-        setText
+        setText,
+        toolbarCommand,
+        setDiffStats
     } = useJsonStore();
 
+    const [viewId, setViewId] = useState(0); // Used to force remount on structural changes like Swap
+    const lastCommandIdRef = useRef<number>(0);
+
+    useEffect(() => {
+        // console.log('DiffEditor Render:', { diffLeft, diffRight, cmd: toolbarCommand?.type });
+    });
+
     const handleSwap = () => {
+        // console.log('Handling Swap...', { currentLeft: diffLeft, currentRight: diffRight });
         const temp = diffLeft;
         setDiffLeft(diffRight);
         setDiffRight(temp);
+        setViewId(v => v + 1); // Force remount to ensure diff is recalculated cleanly
         toast.success('Swapped panes');
     };
 
@@ -38,23 +48,6 @@ export function DiffEditor() {
             setText(diffRight);
             toast.success('Changes applied to main file');
         }
-    };
-
-    const handlePasteRight = async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text) {
-                setDiffRight(text);
-                toast.success('Pasted to Modified pane');
-            }
-        } catch (e) {
-            toast.error('Could not read clipboard');
-        }
-    };
-
-    const handleCopyLeft = () => {
-        setDiffRight(diffLeft);
-        toast.success('Copied Original to Modified');
     };
 
     const handleSmartSort = () => {
@@ -104,6 +97,33 @@ export function DiffEditor() {
         }
     };
 
+    // Listen for Toolbar Commands
+    useEffect(() => {
+        if (!toolbarCommand) return;
+
+        // Prevent double-execution
+        if (toolbarCommand.id === lastCommandIdRef.current) return;
+        lastCommandIdRef.current = toolbarCommand.id;
+
+        switch (toolbarCommand.type) {
+            case 'swap':
+                handleSwap();
+                break;
+            case 'smartSort':
+                handleSmartSort();
+                break;
+            case 'applyRight':
+                handleApply();
+                break;
+            case 'nextChange':
+                scrollToChange('next');
+                break;
+            case 'prevChange':
+                scrollToChange('prev');
+                break;
+        }
+    }, [toolbarCommand]);
+
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -141,7 +161,7 @@ export function DiffEditor() {
                 extensions: [
                     ...commonExtensions,
                     EditorView.editable.of(false),
-                    EditorState.readOnly.of(true)
+                    // EditorState.readOnly.of(true) - Removed to allow programmatic dispatch if needed per previous logs
                 ],
             },
             b: {
@@ -151,6 +171,16 @@ export function DiffEditor() {
                     EditorView.updateListener.of((update) => {
                         if (update.docChanged) {
                             setDiffRight(update.state.doc.toString());
+                        }
+                        // Update stats on every change/update if chunks changed?
+                        // MergeView chunks property availability depends on computation.
+                        // We might need a separate mechanism or assume it's roughly fast enough.
+                        if (viewRef.current) {
+                            setTimeout(() => {
+                                if (viewRef.current) {
+                                    setDiffStats({ changes: viewRef.current.chunks.length });
+                                }
+                            }, 100);
                         }
                     })
                 ],
@@ -166,7 +196,7 @@ export function DiffEditor() {
         return () => {
             view.destroy();
         };
-    }, []); // Run once on mount, updates handled mostly by state if we wanted responsive props but mergeview is heavy.
+    }, [viewId]); // Remount on structural changes
 
     // Sync Left
     useEffect(() => {
@@ -188,49 +218,6 @@ export function DiffEditor() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.toolbar}>
-                <div className={styles.group}>
-                    <span className={styles.label}>Original</span>
-                    <button className={styles.btn} onClick={handleCopyLeft} title="Copy Original to Right">
-                        <Copy size={14} />
-                    </button>
-                </div>
-
-                <div className={styles.centerActions}>
-                    <button className={styles.actionBtn} onClick={handleSmartSort} title="Sort Keys & Align (Ignore Order)">
-                        <AlignLeft size={16} />
-                        <span>Smart Sort</span>
-                    </button>
-                    <button className={styles.actionBtn} onClick={handleSwap} title="Swap Left <-> Right">
-                        <ArrowRightLeft size={16} />
-                        <span>Swap</span>
-                    </button>
-                    <button className={`${styles.actionBtn} ${styles.primary}`} onClick={handleApply} title="Apply changes to Main File">
-                        <ArrowLeft size={16} />
-                        <span>Apply Change</span>
-                    </button>
-                </div>
-
-                <div className={styles.group}>
-                    <div className={styles.navGroup}>
-                        <button className={styles.btn} onClick={() => scrollToChange('prev')} title="Previous Change">
-                            <ArrowUp size={14} />
-                        </button>
-                        <button className={styles.btn} onClick={() => scrollToChange('next')} title="Next Change">
-                            <ArrowDown size={14} />
-                        </button>
-                    </div>
-                    <div className={styles.divider} />
-                    <button className={styles.btn} onClick={handlePasteRight} title="Paste from Clipboard">
-                        <Clipboard size={14} />
-                    </button>
-                    <button className={styles.btn} onClick={() => setDiffRight('')} title="Clear">
-                        <Trash2 size={14} />
-                    </button>
-                    <span className={styles.label}>Modified</span>
-                </div>
-            </div>
-
             <div className={styles.editorWrapper} ref={containerRef} />
         </div>
     );

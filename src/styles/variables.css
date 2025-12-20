@@ -14,6 +14,7 @@
 
   /* Accent Color (Indigo/Violet - Clean & Trustworthy) */
   --color-primary: #6366f1;
+  --color-primary-rgb: 99, 102, 241;
   --color-primary-hover: #4f46e5;
   --color-danger: #ef4444;
   --color-success: #22c55e;
