@@ -33,11 +33,18 @@ interface JsonState {
     isInfoModalOpen: boolean;
     setInfoModalOpen: (open: boolean) => void;
 
+    isFeedbackModalOpen: boolean;
+    setFeedbackModalOpen: (open: boolean) => void;
+
     // Prompt Modal State
     isPromptModalOpen: boolean;
     promptAction: PromptAction;
     setPromptModalOpen: (open: boolean, action?: PromptAction) => void;
     executeAiPrompt: (input: string) => Promise<void>;
+
+    // File Loading State
+    isFileLoading: boolean;
+    setIsFileLoading: (loading: boolean) => void;
 
     // Unified Processing State
     processingStatus: 'fixing' | 'schema' | 'explain' | 'query' | 'generate' | 'convert' | null;
@@ -76,6 +83,7 @@ export const useJsonStore = create<JsonState>()(
             preferredModel: 'auto',
             isAiModalOpen: false,
             isInfoModalOpen: false,
+            isFeedbackModalOpen: false,
             isPromptModalOpen: false,
             promptAction: null,
 
@@ -115,8 +123,12 @@ export const useJsonStore = create<JsonState>()(
 
             setPreferredModel: (model) => set({ preferredModel: model }),
 
+            isFileLoading: false,
+            setIsFileLoading: (loading) => set({ isFileLoading: loading }),
+
             setAiModalOpen: (open) => set({ isAiModalOpen: open }),
             setInfoModalOpen: (open) => set({ isInfoModalOpen: open }),
+            setFeedbackModalOpen: (open) => set({ isFeedbackModalOpen: open }),
             setPromptModalOpen: (open, action = null) => set({ isPromptModalOpen: open, promptAction: action }),
 
             executeAiPrompt: async (input: string) => {

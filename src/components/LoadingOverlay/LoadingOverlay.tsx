@@ -44,19 +44,25 @@ const MESSAGES = {
 };
 
 export function LoadingOverlay() {
-    const { processingStatus } = useJsonStore();
+    const { processingStatus, isFileLoading } = useJsonStore();
     const [isVisible, setIsVisible] = useState(false);
     const [message, setMessage] = useState('');
 
     // Rotating message logic
     useEffect(() => {
-        if (!processingStatus) {
+        if (!processingStatus && !isFileLoading) {
             setIsVisible(false);
             return;
         }
 
         setIsVisible(true);
-        const statusMessages = MESSAGES[processingStatus] || ['Processing...'];
+
+        if (isFileLoading) {
+            setMessage('Reading file...');
+            return;
+        }
+
+        const statusMessages = MESSAGES[processingStatus!] || ['Processing...'];
 
         // Pick initial random message
         setMessage(statusMessages[Math.floor(Math.random() * statusMessages.length)]);

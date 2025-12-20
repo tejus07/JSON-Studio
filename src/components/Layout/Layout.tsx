@@ -9,6 +9,7 @@ import { ContentModal } from '../ContentModal/ContentModal';
 import { InfoModal } from '../InfoModal/InfoModal';
 import { PromptModal } from '../PromptModal/PromptModal';
 import { LoadingOverlay } from '../LoadingOverlay/LoadingOverlay';
+import { FeedbackModal } from '../FeedbackModal/FeedbackModal';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { MobileNav } from '../MobileNav/MobileNav';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -125,12 +126,24 @@ export function Layout() {
     };
 
     const readFile = (file: File) => {
+        useJsonStore.getState().setIsFileLoading(true);
         const reader = new FileReader();
+
         reader.onload = (e) => {
-            const content = e.target?.result as string;
-            setText(content);
-            toast.success('File loaded successfully');
+            // Artificial delay to show loader for small files, and allow UI render for large ones
+            setTimeout(() => {
+                const content = e.target?.result as string;
+                setText(content);
+                useJsonStore.getState().setIsFileLoading(false);
+                toast.success('File loaded successfully');
+            }, 500);
         };
+
+        reader.onerror = () => {
+            useJsonStore.getState().setIsFileLoading(false);
+            toast.error('Failed to read file');
+        };
+
         reader.readAsText(file);
     };
 
@@ -190,6 +203,7 @@ export function Layout() {
             <SettingsModal />
             <ContentModal />
             <InfoModal />
+            <FeedbackModal />
             <LoadingOverlay />
             {useJsonStore.getState().isPromptModalOpen && <PromptModal />}
             <input

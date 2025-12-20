@@ -12,8 +12,9 @@ interface JsonNodeProps {
 }
 
 export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }: JsonNodeProps) {
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(depth === 0);
     const [justCopied, setJustCopied] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(50); // Pagination limit
 
     const isObject = value !== null && typeof value === 'object';
     const isArray = Array.isArray(value);
@@ -21,7 +22,6 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
 
     const handleCopyPath = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // If it's the root node (no name), we might just say "root" or empty
         const pathRef = path || (name ? `["${name}"]` : '');
         if (!pathRef) return;
 
@@ -34,6 +34,11 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
     const toggle = (e: React.MouseEvent) => {
         e.stopPropagation();
         setExpanded(!expanded);
+    };
+
+    const showMore = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setVisibleCount((prev) => prev + 50);
     };
 
     const getTypeColor = (val: any) => {
@@ -50,6 +55,34 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
         return String(val);
     };
 
+    const getPreview = (val: any) => {
+        if (Array.isArray(val)) {
+            return `${val.length} items`;
+        }
+        const keys = Object.keys(val);
+        if (keys.length === 0) return '{}';
+
+        // Pick first 2-3 interesting keys (try to find 'name', 'id', 'title' first)
+        const priorityKeys = ['name', 'id', 'title', 'key', 'type', 'label'];
+        let previewKeys = keys.filter(k => priorityKeys.includes(k.toLowerCase()));
+
+        if (previewKeys.length === 0) {
+            previewKeys = keys.slice(0, 3);
+        } else {
+            // Add a couple more non-priority if we have room
+            const remaining = keys.filter(k => !priorityKeys.includes(k.toLowerCase())).slice(0, 1);
+            previewKeys = [...previewKeys, ...remaining].slice(0, 3);
+        }
+
+        const previewParts = previewKeys.map(k => {
+            const v = val[k];
+            if (typeof v === 'object' && v !== null) return `${k}: [...]`;
+            return `${k}: ${renderValue(v)}`;
+        });
+
+        return `{ ${previewParts.join(', ')}${keys.length > previewKeys.length ? ', ...' : ''} }`;
+    };
+
     if (!isObject) {
         return (
             <div className={styles.line} style={{ paddingLeft: depth * 20 }}>
@@ -63,8 +96,6 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
                     </span>
                 )}
                 {!name && path && (
-                    /* For array items that are primitives, maybe allow clicking the value or a bullet? 
-                       For now, just the value */
                     <span
                         className={`${styles.key} ${styles.copyableKey} ${justCopied ? styles.copied : ''}`}
                         onClick={handleCopyPath}
@@ -81,6 +112,8 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
     }
 
     const keys = Object.keys(value);
+    const visibleKeys = keys.slice(0, visibleCount);
+    const hasMore = keys.length > visibleCount;
     const Icon = isArray ? Brackets : Braces;
 
     return (
@@ -110,30 +143,40 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '' }:
 
                 {!expanded && (
                     <span className={styles.collapsed}>
-                        {isArray ? `${keys.length} items` : `${keys.length} keys`}
+                        {getPreview(value)}
                     </span>
                 )}
 
                 {!expanded && (
                     <span className={styles.bracket}>
                         {isArray ? ']' : '}'}
-                        {!isLast && ','}
+                        {(!isLast) && ','}
                     </span>
                 )}
             </div>
 
             {expanded && !isEmpty && (
                 <div className={styles.children}>
-                    {keys.map((key, index) => (
+                    {visibleKeys.map((key, index) => (
                         <JsonNode
                             key={key}
                             name={isArray ? '' : key}
                             value={value[key]}
-                            isLast={index === keys.length - 1}
+                            isLast={index === keys.length - 1} // Logic is complicated with pagination, but visual 'isLast' within visible is ok.
+                            // However, strictly speaking, isLast mostly controls the trailing comma.
+                            // If we have more items hidden, the last visible item should probably have a comma if it's not truly the last item of the whole array.
+                            // But simplifying: let's just show comma if index !== keys.length - 1
                             depth={depth + 1}
                             path={isArray ? `${path}[${index}]` : `${path ? path : ''}["${key}"]`}
                         />
                     ))}
+                    {hasMore && (
+                        <div className={styles.showMore} style={{ paddingLeft: (depth + 1) * 20 }}>
+                            <button onClick={showMore} className={styles.showMoreBtn}>
+                                Show {Math.min(50, keys.length - visibleCount)} more... ({keys.length - visibleCount} remaining)
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
