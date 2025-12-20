@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { listModels } from '../../services/aiService';
-import { X, Key, ShieldCheck, BoxSelect, RefreshCw } from 'lucide-react';
+import { X, Key, ShieldCheck, BoxSelect, RefreshCw, Palette, Sun, Moon } from 'lucide-react';
 import styles from './SettingsModal.module.css';
 
 export function SettingsModal() {
-    const { isAiModalOpen, setAiModalOpen, apiKey, setApiKey, preferredModel, setPreferredModel } = useJsonStore();
-    const [inputKey, setInputKey] = useState(apiKey);
+    const { isAiModalOpen, setAiModalOpen, apiKey, setApiKey, preferredModel, setPreferredModel, theme, setTheme } = useJsonStore();
+
+    // Local state for pending changes
+    const [localKey, setLocalKey] = useState(apiKey);
+    const [localTheme, setLocalTheme] = useState(theme);
+    const [localModel, setLocalModel] = useState(preferredModel);
+
     const [models, setModels] = useState<any[]>([]);
     const [loadingModels, setLoadingModels] = useState(false);
 
+    // Sync local state when modal opens
     useEffect(() => {
-        if (isAiModalOpen && apiKey) {
-            setInputKey(apiKey);
-            fetchModels(apiKey);
+        if (isAiModalOpen) {
+            setLocalKey(apiKey);
+            setLocalTheme(theme);
+            setLocalModel(preferredModel);
+
+            if (apiKey) {
+                fetchModels(apiKey);
+            }
         }
-    }, [isAiModalOpen, apiKey]);
+    }, [isAiModalOpen, apiKey, theme, preferredModel]);
 
     const fetchModels = async (key: string) => {
         if (!key) return;
@@ -28,7 +39,9 @@ export function SettingsModal() {
     if (!isAiModalOpen) return null;
 
     const handleSave = () => {
-        setApiKey(inputKey);
+        setApiKey(localKey);
+        setTheme(localTheme);
+        setPreferredModel(localModel);
         setAiModalOpen(false);
     };
 
@@ -36,13 +49,30 @@ export function SettingsModal() {
         <div className={styles.overlay}>
             <div className={styles.modal}>
                 <div className={styles.header}>
-                    <h3>AI Settings</h3>
+                    <h3>Settings</h3>
                     <button onClick={() => setAiModalOpen(false)} className={styles.closeBtn}>
                         <X size={18} />
                     </button>
                 </div>
 
                 <div className={styles.content}>
+                    <div className={styles.sectionTitle}>General</div>
+                    <div className={styles.inputGroup}>
+                        <label>Appearance</label>
+                        <div className={styles.inputWrapper}>
+                            <Palette size={16} className={styles.inputIcon} />
+                            <div className={styles.toggleRow} onClick={() => setLocalTheme(localTheme === 'dark' ? 'light' : 'dark')}>
+                                <span className={styles.toggleText}>{localTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                                <button className={styles.themeBtn}>
+                                    {localTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.sectionDivider} />
+
+                    <div className={styles.sectionTitle}>Intelligence</div>
                     <div className={styles.inputGroup}>
                         <label>Google Gemini API Key</label>
                         <div className={styles.inputWrapper}>
@@ -50,8 +80,8 @@ export function SettingsModal() {
                             <input
                                 type="password"
                                 placeholder="Enter your API Key"
-                                value={inputKey}
-                                onChange={(e) => setInputKey(e.target.value)}
+                                value={localKey}
+                                onChange={(e) => setLocalKey(e.target.value)}
                                 className={styles.input}
                             />
                         </div>
@@ -65,8 +95,8 @@ export function SettingsModal() {
                         <div className={styles.inputWrapper}>
                             <BoxSelect size={16} className={styles.inputIcon} />
                             <select
-                                value={preferredModel}
-                                onChange={(e) => setPreferredModel(e.target.value)}
+                                value={localModel}
+                                onChange={(e) => setLocalModel(e.target.value)}
                                 className={styles.select}
                                 disabled={loadingModels || models.length === 0}
                             >
@@ -77,8 +107,8 @@ export function SettingsModal() {
                                     </option>
                                 ))}
                             </select>
-                            {models.length === 0 && inputKey && (
-                                <button onClick={() => fetchModels(inputKey)} className={styles.refreshBtn} title="Refresh Models">
+                            {models.length === 0 && localKey && (
+                                <button onClick={() => fetchModels(localKey)} className={styles.refreshBtn} title="Refresh Models">
                                     <RefreshCw size={14} className={loadingModels ? styles.spin : ''} />
                                 </button>
                             )}
@@ -93,7 +123,7 @@ export function SettingsModal() {
 
                 <div className={styles.footer}>
                     <button onClick={() => setAiModalOpen(false)} className={styles.cancelBtn}>Cancel</button>
-                    <button onClick={handleSave} className={styles.saveBtn}>Save Key</button>
+                    <button onClick={handleSave} className={styles.saveBtn}>Save Settings</button>
                 </div>
             </div>
         </div>

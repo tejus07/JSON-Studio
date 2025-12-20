@@ -54,9 +54,24 @@
     border-radius: var(--radius-sm);
 }
 
-.closeBtn:hover {
-    background-color: var(--bg-surface);
-    color: var(--text-main);
+.sectionTitle {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin-bottom: var(--spacing-4);
+    margin-top: var(--spacing-2);
+}
+
+.sectionTitle:first-child {
+    margin-top: 0;
+}
+
+.sectionDivider {
+    height: 1px;
+    background-color: var(--border-subtle);
+    margin: var(--spacing-6) 0;
 }
 
 .content {
@@ -204,4 +219,41 @@
 
 .saveBtn:hover {
     background-color: var(--color-primary-hover);
+}
+
+.toggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-surface);
+}
+
+.toggleText {
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.themeBtn {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+}
+
+.themeBtn:hover {
+    background-color: var(--bg-hover);
+}
+
+.toggleRow:hover {
+    border-color: var(--border-focus);
 }

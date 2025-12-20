@@ -168,7 +168,7 @@ export function Layout() {
                     <>
                         {(!isMobile || viewMode === 'code') && (
                             <div className={`${styles.pane} ${viewMode === 'split' ? styles.half : styles.full}`}>
-                                <Editor initialValue={rawText} onChange={setText} />
+                                <Editor initialValue={rawText} onChange={setText} theme={theme} />
                             </div>
                         )}
 

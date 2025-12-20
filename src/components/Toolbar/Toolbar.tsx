@@ -1,4 +1,4 @@
-import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Code, FolderTree, HelpCircle, Settings, Sun, Moon, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
+import { FileJson, Upload, Download, Copy, Trash2, AlignLeft, Minimize, Wand2, Code, FolderTree, HelpCircle, Settings, Loader2, MessageSquareText, Sparkles } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useJsonStore } from '../../store/useJsonStore';
@@ -18,8 +18,6 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
         isValid,
         format,
         minify,
-        theme,
-        setTheme,
         setAiModalOpen,
         fixJsonWithAI,
         isFixing,
@@ -190,16 +188,9 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                     <button
                         onClick={() => setAiModalOpen(true)}
                         className={styles.toolButton}
-                        title="AI Settings"
+                        title="Settings"
                     >
                         <Settings size={16} />
-                    </button>
-                    <button
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className={styles.toolButton}
-                        title="Toggle Theme"
-                    >
-                        {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                     </button>
                 </div>
             </div>
