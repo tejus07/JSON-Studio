@@ -54,8 +54,10 @@ interface JsonState {
     // Diff Mode State
     isDiffView: boolean;
     setDiffView: (open: boolean) => void;
-    secondaryText: string;
-    setSecondaryText: (text: string) => void;
+    diffLeft: string;
+    diffRight: string;
+    setDiffLeft: (text: string) => void;
+    setDiffRight: (text: string) => void;
 
     // Actions
     fixJsonWithAI: (currentTextOverride?: string) => Promise<void>;
@@ -104,9 +106,19 @@ export const useJsonStore = create<JsonState>()(
 
             // Diff Mode
             isDiffView: false,
-            secondaryText: '',
-            setDiffView: (open) => set({ isDiffView: open }),
-            setSecondaryText: (text) => set({ secondaryText: text }),
+            diffLeft: '',
+            diffRight: '',
+            setDiffView: (open) => {
+                set(state => {
+                    // Initial sync when opening
+                    if (open) {
+                        return { isDiffView: true, diffLeft: state.rawText, diffRight: '' };
+                    }
+                    return { isDiffView: false };
+                });
+            },
+            setDiffLeft: (text) => set({ diffLeft: text }),
+            setDiffRight: (text) => set({ diffRight: text }),
 
             // Deprecated booleans (mapped for compatibility if needed, but we should switch)
             // For now, let's keep the getters compatible if components use them, but purely rely on processingStatus internally? 
@@ -317,7 +329,8 @@ export const useJsonStore = create<JsonState>()(
                 viewMode: state.viewMode,
                 splitRatio: state.splitRatio,
                 isDiffView: state.isDiffView,
-                secondaryText: state.secondaryText
+                diffLeft: state.diffLeft,
+                diffRight: state.diffRight
             }),
             onRehydrateStorage: () => (state) => {
                 // Restore theme attribute when rehydrated

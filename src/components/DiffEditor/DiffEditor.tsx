@@ -17,26 +17,25 @@ import styles from './DiffEditor.module.css';
 export function DiffEditor() {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<MergeView | null>(null);
-    const { rawText, secondaryText, setSecondaryText, theme, setText } = useJsonStore();
-
-    // Auto-fill right pane with left pane if empty on mount (Better Defaults)
-    useEffect(() => {
-        if (!secondaryText && rawText) {
-            setSecondaryText(rawText);
-            toast.info('Initialized Comparison View');
-        }
-    }, []);
+    const {
+        diffLeft,
+        diffRight,
+        setDiffLeft,
+        setDiffRight,
+        theme,
+        setText
+    } = useJsonStore();
 
     const handleSwap = () => {
-        const temp = rawText;
-        setText(secondaryText);
-        setSecondaryText(temp);
+        const temp = diffLeft;
+        setDiffLeft(diffRight);
+        setDiffRight(temp);
         toast.success('Swapped panes');
     };
 
     const handleApply = () => {
-        if (confirm('Overwrite original file with modified content?')) {
-            setText(secondaryText);
+        if (confirm('Overwrite original file with Modified content?')) {
+            setText(diffRight);
             toast.success('Changes applied to main file');
         }
     };
@@ -45,7 +44,7 @@ export function DiffEditor() {
         try {
             const text = await navigator.clipboard.readText();
             if (text) {
-                setSecondaryText(text);
+                setDiffRight(text);
                 toast.success('Pasted to Modified pane');
             }
         } catch (e) {
@@ -54,17 +53,17 @@ export function DiffEditor() {
     };
 
     const handleCopyLeft = () => {
-        setSecondaryText(rawText);
+        setDiffRight(diffLeft);
         toast.success('Copied Original to Modified');
     };
 
     const handleSmartSort = () => {
-        const sortedLeft = formatAndSortJSON(rawText);
-        const sortedRight = formatAndSortJSON(secondaryText);
+        const sortedLeft = formatAndSortJSON(diffLeft);
+        const sortedRight = formatAndSortJSON(diffRight);
 
-        if (sortedLeft !== rawText || sortedRight !== secondaryText) {
-            setText(sortedLeft);
-            setSecondaryText(sortedRight);
+        if (sortedLeft !== diffLeft || sortedRight !== diffRight) {
+            setDiffLeft(sortedLeft);
+            setDiffRight(sortedRight);
             toast.success('Keys sorted & formatted');
         } else {
             toast.info('Already sorted');
@@ -138,16 +137,20 @@ export function DiffEditor() {
 
         const view = new MergeView({
             a: {
-                doc: rawText,
-                extensions: [...commonExtensions, EditorView.editable.of(false), EditorState.readOnly.of(true)],
+                doc: diffLeft,
+                extensions: [
+                    ...commonExtensions,
+                    EditorView.editable.of(false),
+                    EditorState.readOnly.of(true)
+                ],
             },
             b: {
-                doc: secondaryText,
+                doc: diffRight,
                 extensions: [
                     ...commonExtensions,
                     EditorView.updateListener.of((update) => {
                         if (update.docChanged) {
-                            setSecondaryText(update.state.doc.toString());
+                            setDiffRight(update.state.doc.toString());
                         }
                     })
                 ],
@@ -155,7 +158,7 @@ export function DiffEditor() {
             parent: containerRef.current,
             gutter: true,
             highlightChanges: true,
-            collapseUnchanged: { margin: 3 }, // Collapse unchanged regions to focus on diffs
+            collapseUnchanged: { margin: 3 },
         });
 
         viewRef.current = view;
@@ -165,24 +168,23 @@ export function DiffEditor() {
         };
     }, []); // Run once on mount, updates handled mostly by state if we wanted responsive props but mergeview is heavy.
 
-    // Effect to update Left Pane if rawText changes externally (unlikely while in diff mode but good practice)
+    // Sync Left
     useEffect(() => {
-        if (viewRef.current && viewRef.current.a.state.doc.toString() !== rawText) {
+        if (viewRef.current && viewRef.current.a.state.doc.toString() !== diffLeft) {
             viewRef.current.a.dispatch({
-                changes: { from: 0, to: viewRef.current.a.state.doc.length, insert: rawText }
+                changes: { from: 0, to: viewRef.current.a.state.doc.length, insert: diffLeft }
             });
         }
-    }, [rawText]);
+    }, [diffLeft]);
 
-    // Effect to update Right Pane if secondaryText changes externally
+    // Sync Right
     useEffect(() => {
-        // Avoid loop
-        if (viewRef.current && viewRef.current.b.state.doc.toString() !== secondaryText) {
+        if (viewRef.current && viewRef.current.b.state.doc.toString() !== diffRight) {
             viewRef.current.b.dispatch({
-                changes: { from: 0, to: viewRef.current.b.state.doc.length, insert: secondaryText }
+                changes: { from: 0, to: viewRef.current.b.state.doc.length, insert: diffRight }
             });
         }
-    }, [secondaryText]);
+    }, [diffRight]);
 
     return (
         <div className={styles.container}>
@@ -222,7 +224,7 @@ export function DiffEditor() {
                     <button className={styles.btn} onClick={handlePasteRight} title="Paste from Clipboard">
                         <Clipboard size={14} />
                     </button>
-                    <button className={styles.btn} onClick={() => setSecondaryText('')} title="Clear">
+                    <button className={styles.btn} onClick={() => setDiffRight('')} title="Clear">
                         <Trash2 size={14} />
                     </button>
                     <span className={styles.label}>Modified</span>
