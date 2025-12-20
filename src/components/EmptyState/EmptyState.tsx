@@ -1,4 +1,4 @@
-import { FileText, Sparkles, Upload } from 'lucide-react';
+import { FileText, Sparkles, Upload, Clipboard } from 'lucide-react';
 import { useJsonStore } from '../../store/useJsonStore';
 import styles from './EmptyState.module.css';
 
@@ -14,7 +14,7 @@ export function EmptyState() {
                     <FileText size={48} strokeWidth={1} />
                 </div>
                 <h2 className={styles.title}>JSON Studio</h2>
-                <p className={styles.subtitle}>Drop a file here or start with AI</p>
+                <p className={styles.subtitle}>Drop a file, Paste JSON, or Start with AI</p>
 
                 <div className={styles.actions}>
                     <button
@@ -23,6 +23,23 @@ export function EmptyState() {
                     >
                         <Upload size={16} />
                         <span>Open File</span>
+                    </button>
+
+                    <button
+                        className={styles.actionBtn}
+                        onClick={async () => {
+                            try {
+                                const text = await navigator.clipboard.readText();
+                                if (text) {
+                                    useJsonStore.getState().setText(text);
+                                }
+                            } catch (e) {
+                                alert('Please press Cmd+V / Ctrl+V to paste.');
+                            }
+                        }}
+                    >
+                        <Clipboard size={16} />
+                        <span>Paste JSON</span>
                     </button>
 
                     <button
