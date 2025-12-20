@@ -1,4 +1,4 @@
-import { X, Copy, Check, Sparkles, FileCode, Wand2, Info, Table as TableIcon, ExternalLink } from 'lucide-react';
+import { X, Copy, Check, Sparkles, FileCode, Wand2, Info, Table as TableIcon, Download } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useJsonStore } from '../../store/useJsonStore';
 import { toast } from 'sonner';
@@ -40,10 +40,23 @@ export function ContentModal() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleOpenInNewTab = () => {
-        const blob = new Blob([generatedContent.content], { type: 'application/json' });
+    const handleDownload = () => {
+        const blob = new Blob([generatedContent.content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
+        const a = document.createElement('a');
+        a.href = url;
+        // Infer extension from title or just use .txt
+        let ext = '.txt';
+        if (generatedContent.title.includes('CSV')) ext = '.csv';
+        if (generatedContent.title.includes('JSON')) ext = '.json';
+        if (generatedContent.title.includes('YAML')) ext = '.yaml';
+        if (generatedContent.title.includes('XML')) ext = '.xml';
+
+        a.download = `result${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     const handleClose = () => {
@@ -120,10 +133,10 @@ export function ContentModal() {
                                 </button>
                                 <button
                                     className={styles.actionBtn}
-                                    onClick={handleOpenInNewTab}
-                                    title="Open in New Tab"
+                                    onClick={handleDownload}
+                                    title="Download"
                                 >
-                                    <ExternalLink size={18} />
+                                    <Download size={18} />
                                 </button>
                                 <button
                                     className={styles.actionBtn}

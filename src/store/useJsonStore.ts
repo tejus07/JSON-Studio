@@ -119,13 +119,10 @@ export const useJsonStore = create<JsonState>()(
                         title = 'Query Result';
                         type = 'code'; // Just view, copy manually? Or fix-preview? Let's use code view for now, usually you don't overwrite source with query result.
                     } else if (promptAction === 'convert') {
-                        // Input IS the format for convert
-                        // Actually input is the user text. For convert "Convert to CSV". 
-                        // But smartConvert takes (json, format). 
-                        // Let's assume input implies format or ask specifically.
-                        // Ideally prompt is "Convert to CSV".
                         result = await smartConvert(rawText, input, apiKey, preferredModel);
-                        title = `Converted to ${input}`;
+                        // Clean up title: "Convert to CSV" -> "CSV Conversion"
+                        const format = input.replace(/convert to/i, '').trim();
+                        title = `${format} Conversion`;
                         type = 'code';
                     }
 
