@@ -156,17 +156,21 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                             <div className={styles.toolGroup}>
                                 <button onClick={onUpload} className={styles.toolButton} title="Open JSON File">
                                     <Upload size={16} />
+                                    <span className={styles.desktopLabel}>Open</span>
                                 </button>
                                 <button onClick={onDownload} className={styles.toolButton} title="Save as JSON" disabled={!rawText}>
                                     <Download size={16} />
+                                    <span className={styles.desktopLabel}>Save</span>
                                 </button>
                                 <div className={styles.divider} />
                                 <button onClick={onCopy} className={styles.toolButton} title="Copy All" disabled={!rawText}>
                                     <Copy size={16} />
+                                    <span className={styles.desktopLabel}>Copy</span>
                                 </button>
                                 {!isMobile && (
                                     <button onClick={onClear} className={styles.toolButton} title="Clear Editor">
                                         <Trash2 size={16} />
+                                        <span className={styles.desktopLabel}>Clear</span>
                                     </button>
                                 )}
                             </div>
@@ -212,9 +216,11 @@ export function Toolbar({ onUpload, onDownload, onCopy, onClear, isMobile }: Too
                             <div className={styles.toolGroup}>
                                 <button onClick={() => { format(); toast.success('JSON Formatted'); }} className={styles.toolButton} title="Format" disabled={!isValid || !rawText}>
                                     <AlignLeft size={16} />
+                                    <span className={styles.desktopLabel}>Format</span>
                                 </button>
                                 <button onClick={() => { minify(); toast.success('JSON Minified'); }} className={styles.toolButton} title="Minify" disabled={!isValid || !rawText}>
                                     <Minimize size={16} />
+                                    <span className={styles.desktopLabel}>Minify</span>
                                 </button>
                             </div>
 

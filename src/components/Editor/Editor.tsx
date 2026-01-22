@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { AlignLeft } from 'lucide-react';
+import { toast } from 'sonner';
 import { EditorState, Compartment } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
@@ -8,6 +10,7 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap, search } from '@codemirror/search';
 import styles from './Editor.module.css';
+import { formatJSON } from '../../utils/jsonUtils';
 
 interface EditorProps {
     initialValue?: string;
@@ -55,6 +58,32 @@ export function Editor({ initialValue = '', theme = 'dark', onChange }: EditorPr
                     ...historyKeymap,
                     ...foldKeymap,
                 ]),
+
+                EditorView.domEventHandlers({
+                    paste(event, view) {
+                        const text = event.clipboardData?.getData('text/plain');
+                        if (!text) return;
+
+                        const trimmed = text.trim();
+                        // Optimization: Only attempt to parse if it looks like a JSON object or array
+                        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                            try {
+                                // Check validity and format
+                                const formatted = formatJSON(trimmed);
+                                // formatJSON returns original string if invalid, so we strictly check if it parses via JSON.parse first
+                                // actually formatJSON swallows error, so let's verify validity explicitly to avoid formatting partial non-json text that implies json
+                                JSON.parse(trimmed);
+
+                                // If we got here, it's valid. Use the formatted version.
+                                view.dispatch(view.state.replaceSelection(formatted));
+                                event.preventDefault();
+                                return true;
+                            } catch (e) {
+                                // Invalid JSON, let default handler take over
+                            }
+                        }
+                    }
+                }),
 
                 EditorView.updateListener.of((update) => {
                     if (update.docChanged && onChange) {
@@ -104,8 +133,34 @@ export function Editor({ initialValue = '', theme = 'dark', onChange }: EditorPr
     // Note: We deliberately do not update the doc when props.initialValue changes 
     // to avoid fighting with the editor state. This is an uncontrolled component pattern for now.
 
+    const handleFormat = () => {
+        if (!viewRef.current) return;
+
+        const currentDoc = viewRef.current.state.doc.toString();
+        const formatted = formatJSON(currentDoc);
+
+        // Only update if it actually changed to avoid cursor jumping if already formatted
+        if (formatted !== currentDoc) {
+            viewRef.current.dispatch({
+                changes: { from: 0, to: currentDoc.length, insert: formatted }
+            });
+            toast.success('Formatted');
+        } else {
+            toast.info('Already formatted');
+        }
+    };
+
     return (
-        <div className={styles.editorContainer} ref={containerRef} />
+        <div className={styles.editorContainer} ref={containerRef}>
+            <button
+                className={styles.floatingFormatBtn}
+                onClick={handleFormat}
+                title="Format JSON"
+            >
+                <AlignLeft size={14} />
+                <span className={styles.btnLabel}>Format</span>
+            </button>
+        </div>
     );
 }
 
