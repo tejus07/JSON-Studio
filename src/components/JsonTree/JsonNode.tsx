@@ -9,16 +9,114 @@ interface JsonNodeProps {
     isLast: boolean;
     depth?: number;
     path?: string;
+
     defaultExpandedDepth?: number;
+    searchQuery?: string;
 }
 
-export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', defaultExpandedDepth = 0 }: JsonNodeProps) {
-    const [expanded, setExpanded] = useState(depth <= defaultExpandedDepth);
+// Helper: Does this value or its children match?
+// Note: This needs to be efficient.
+// We will do a simpler check first: Does THIS node match?
+const doesNodeMatch = (key: string, value: any, query: string): boolean => {
+    if (!query) return true;
+    if (key.toLowerCase().includes(query)) return true;
+    if (value === null) return 'null'.includes(query);
+    if (typeof value === 'string') return value.toLowerCase().includes(query);
+    if (typeof value === 'number') return String(value).includes(query);
+    if (typeof value === 'boolean') return String(value).includes(query);
+    return false;
+};
+
+// Helper: Highlight text
+const HighlightText = ({ text, query }: { text: string, query: string }) => {
+    if (!query || !text.toLowerCase().includes(query)) return <>{text}</>;
+
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return (
+        <>
+            {parts.map((part, i) =>
+                part.toLowerCase() === query.toLowerCase() ? (
+                    <span key={i} className={styles.highlight}>{part}</span>
+                ) : (
+                    part
+                )
+            )}
+        </>
+    );
+};
+
+// Helper: Recursive check for deep matching
+const doesValueMatchDeep = (val: any, query: string): boolean => {
+    if (!query) return false;
+    if (val === null || typeof val !== 'object') return false;
+
+    return Object.entries(val).some(([k, v]) => {
+        if (doesNodeMatch(k, v, query)) return true;
+        if (typeof v === 'object') return doesValueMatchDeep(v, query);
+        return false;
+    });
+};
+
+export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', defaultExpandedDepth = 0, searchQuery = '' }: JsonNodeProps) {
+    // Search Logic
+    // If query exists, we need to know if we should render.
+    // We render if:
+    // 1. We match the query (Name or Value)
+    // 2. Any of our children match the query (search deep)
+
+    // Derived state for matching
+    // Warning: Deep recursion on every render might be slow for huge JSON.
+    // React's memo helps, but if query changes, everything re-renders.
+    // For MVP "Find", this is acceptable up to ~10k lines.
+
+    const matchesSelf = doesNodeMatch(name, value, searchQuery);
+
+    // We need to check children to decide if we stay visible even if self doesn't match
+    const isObject = value !== null && typeof value === 'object';
+    const isArray = Array.isArray(value);
+
+    // Lazy check for children matching if we are an object
+    // This is the expensive part.
+    // Optimization: If searchQuery is empty, don't filter.
+
+    let hasMatchingChild = false;
+    // Filtering Logic:
+    // If we have a search query, we want to know WHICH children match, so we can only show those.
+    // But for "hasMatchingChild" (used for auto-expansion/visibility), we just need to know if ANY match.
+    // To support "Fix Search Pagination", we need to compute the list of matching keys.
+
+    let filteredKeys: string[] | null = null;
+
+    if (searchQuery && isObject) {
+        // Helper to check specific child
+        const shouldShowNode = (k: string, v: any) => {
+            return doesNodeMatch(k, v, searchQuery) || doesValueMatchDeep(v, searchQuery);
+        };
+
+        filteredKeys = Object.keys(value).filter(k => shouldShowNode(k, value[k]));
+        hasMatchingChild = filteredKeys.length > 0;
+    } else if (isObject) {
+        // No search, but check if we need to know children existence? 
+        // Actually if no search, hasMatchingChild is irrelevant (false).
+    }
+
+    // Force expand if children match
+    const shouldExpand = searchQuery ? hasMatchingChild : depth <= defaultExpandedDepth;
+    const [expanded, setExpanded] = useState(shouldExpand);
     const [justCopied, setJustCopied] = useState(false);
     const [visibleCount, setVisibleCount] = useState(50); // Pagination limit
 
-    const isObject = value !== null && typeof value === 'object';
-    const isArray = Array.isArray(value);
+    // Sync expansion with search
+    if (searchQuery && hasMatchingChild && !expanded) {
+        setExpanded(true); // Auto expand on search
+    }
+
+    // Visibility decision:
+    // Show if: No query OR self match OR children match
+    const isVisible = !searchQuery || matchesSelf || hasMatchingChild;
+
+    if (!isVisible) return null;
+
     const isEmpty = isObject && Object.keys(value).length === 0;
 
     const handleCopyPath = (e: React.MouseEvent) => {
@@ -40,6 +138,11 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
     const showMore = (e: React.MouseEvent) => {
         e.stopPropagation();
         setVisibleCount((prev) => prev + 50);
+    };
+
+    const showAll = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setVisibleCount(keys.length);
     };
 
     const getTypeColor = (val: any) => {
@@ -93,7 +196,7 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
                         onClick={handleCopyPath}
                         title="Click to copy path"
                     >
-                        {name}:
+                        <HighlightText text={name} query={searchQuery} />:
                     </span>
                 )}
                 {!name && path && (
@@ -105,14 +208,20 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
                     >•</span>
                 )}
                 <span className={styles.value} style={{ color: getTypeColor(value) }}>
-                    {renderValue(value)}
+                    {typeof value === 'string' ? (
+                        <>
+                            "<HighlightText text={value} query={searchQuery} />"
+                        </>
+                    ) : (
+                        <HighlightText text={String(value)} query={searchQuery} />
+                    )}
                 </span>
                 {!isLast && <span className={styles.punct}>,</span>}
             </div>
         );
     }
 
-    const keys = Object.keys(value);
+    const keys = filteredKeys || Object.keys(value);
     const visibleKeys = keys.slice(0, visibleCount);
     const hasMore = keys.length > visibleCount;
     const Icon = isArray ? Brackets : Braces;
@@ -134,7 +243,7 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
                         onClick={handleCopyPath}
                         title="Click to copy path"
                     >
-                        {name}:
+                        <HighlightText text={name} query={searchQuery} />:
                     </span>
                 )}
 
@@ -145,6 +254,7 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
                 {!expanded && (
                     <span className={styles.collapsed}>
                         {getPreview(value)}
+                        {/* Note: We don't highlight preview text to keep it simple, or we could if needed */}
                     </span>
                 )}
 
@@ -170,12 +280,17 @@ export function JsonNodeComponent({ name, value, isLast, depth = 0, path = '', d
                             depth={depth + 1}
                             path={isArray ? `${path}[${index}]` : `${path ? path : ''}["${key}"]`}
                             defaultExpandedDepth={defaultExpandedDepth}
+                            searchQuery={searchQuery}
                         />
                     ))}
                     {hasMore && (
                         <div className={styles.showMore} style={{ paddingLeft: (depth + 1) * 20 }}>
                             <button onClick={showMore} className={styles.showMoreBtn}>
                                 Show {Math.min(50, keys.length - visibleCount)} more... ({keys.length - visibleCount} remaining)
+                            </button>
+                            <span style={{ margin: '0 8px', color: 'var(--text-muted)' }}>|</span>
+                            <button onClick={showAll} className={styles.showMoreBtn}>
+                                View All ({keys.length} items)
                             </button>
                         </div>
                     )}

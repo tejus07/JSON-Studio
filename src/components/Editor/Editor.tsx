@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { AlignLeft } from 'lucide-react';
+import { AlignLeft, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { EditorState, Compartment } from '@codemirror/state';
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine } from '@codemirror/view';
@@ -8,7 +8,7 @@ import { bracketMatching, foldGutter, foldKeymap, indentOnInput, syntaxHighlight
 import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { searchKeymap, search } from '@codemirror/search';
+import { searchKeymap, search, openSearchPanel } from '@codemirror/search';
 import styles from './Editor.module.css';
 import { formatJSON } from '../../utils/jsonUtils';
 
@@ -150,16 +150,31 @@ export function Editor({ initialValue = '', theme = 'dark', onChange }: EditorPr
         }
     };
 
+    const handleSearch = () => {
+        if (!viewRef.current) return;
+        openSearchPanel(viewRef.current);
+    };
+
     return (
         <div className={styles.editorContainer} ref={containerRef}>
-            <button
-                className={styles.floatingFormatBtn}
-                onClick={handleFormat}
-                title="Format JSON"
-            >
-                <AlignLeft size={14} />
-                <span className={styles.btnLabel}>Format</span>
-            </button>
+            <div className={styles.floatingControls}>
+                <button
+                    className={styles.floatingBtn}
+                    onClick={handleSearch}
+                    title="Find (Cmd+F)"
+                >
+                    <Search size={14} />
+                    <span className={styles.btnLabel}>Find</span>
+                </button>
+                <button
+                    className={styles.floatingBtn}
+                    onClick={handleFormat}
+                    title="Format JSON"
+                >
+                    <AlignLeft size={14} />
+                    <span className={styles.btnLabel}>Format</span>
+                </button>
+            </div>
         </div>
     );
 }

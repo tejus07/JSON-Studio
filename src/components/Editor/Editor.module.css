@@ -27,12 +27,18 @@
     color: var(--text-main);
 }
 
-.floatingFormatBtn {
+.floatingControls {
     position: absolute;
     top: 8px;
     right: 24px;
     /* Avoid overlap with scrollbar */
     z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.floatingBtn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +65,7 @@
     font-weight: 500;
 }
 
-.floatingFormatBtn:hover {
+.floatingBtn:hover {
     opacity: 1;
     background-color: var(--bg-surface);
     border-color: var(--border-subtle);
@@ -69,7 +75,7 @@
     padding-right: 10px;
 }
 
-.floatingFormatBtn:hover .btnLabel {
+.floatingBtn:hover .btnLabel {
     max-width: 60px;
     opacity: 1;
     margin-left: 6px;
