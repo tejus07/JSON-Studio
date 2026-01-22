@@ -18,8 +18,9 @@ Use the power of LLMs (Gemini/OpenAI) directly in your editor:
 
 ### 🛠 Powerful Editor
 -   **Dual Views**: Switch between **Code** and **Tree** views.
--   **Search & Replace**: Full regex support (`Cmd+F`).
--   **Format & Minify**: Prettify or compact your JSON instantly.
+-   **Search everywhere**: Full regex support in Code view (`Cmd+F`) and smart filtering in Tree view.
+-   **Smart Formatting**: Auto-formats valid JSON on paste.
+-   **Format & Minify**: Prettify or compact your JSON instantly with floating quick-access controls.
 -   **Error visualization**: See exactly where your JSON is broken.
 
 ### 🚀 Productivity Pro
